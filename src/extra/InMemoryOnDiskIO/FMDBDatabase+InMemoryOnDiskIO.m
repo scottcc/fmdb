@@ -1,4 +1,4 @@
-#import "FMDatabase+InMemoryOnDiskIO.h"
+#import "FMDBDatabase+InMemoryOnDiskIO.h"
 #import <sqlite3.h>
 
 
@@ -53,7 +53,7 @@ int loadOrSaveDb(sqlite3 *pInMemory, const char *zFilename, int isSave)
 
 
 
-@implementation FMDatabase (InMemoryOnDiskIO)
+@implementation FMDBDatabase (InMemoryOnDiskIO)
 
 - (BOOL)readFromFile:(NSString*)filePath
 {

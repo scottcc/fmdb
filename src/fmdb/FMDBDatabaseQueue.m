@@ -1,13 +1,13 @@
 //
-//  FMDatabaseQueue.m
+//  FMDBDatabaseQueue.m
 //  fmdb
 //
 //  Created by August Mueller on 6/22/11.
 //  Copyright 2011 Flying Meat Inc. All rights reserved.
 //
 
-#import "FMDatabaseQueue.h"
-#import "FMDatabase.h"
+#import "FMDBDatabaseQueue.h"
+#import "FMDBDatabase.h"
 
 #if FMDB_SQLITE_STANDALONE
 #import <sqlite3/sqlite3.h>
@@ -18,19 +18,19 @@
 /*
  
  Note: we call [self retain]; before using dispatch_sync, just incase 
- FMDatabaseQueue is released on another thread and we're in the middle of doing
+ FMDBDatabaseQueue is released on another thread and we're in the middle of doing
  something in dispatch_sync
  
  */
 
 /*
- * A key used to associate the FMDatabaseQueue object with the dispatch_queue_t it uses.
+ * A key used to associate the FMDBDatabaseQueue object with the dispatch_queue_t it uses.
  * This in turn is used for deadlock detection by seeing if inDatabase: is called on
  * the queue's dispatch queue, which should not happen and causes a deadlock.
  */
 static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey;
  
-@implementation FMDatabaseQueue
+@implementation FMDBDatabaseQueue
 
 @synthesize path = _path;
 @synthesize openFlags = _openFlags;
@@ -38,7 +38,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 + (instancetype)databaseQueueWithPath:(NSString*)aPath {
     
-    FMDatabaseQueue *q = [[self alloc] initWithPath:aPath];
+    FMDBDatabaseQueue *q = [[self alloc] initWithPath:aPath];
     
     FMDBAutorelease(q);
     
@@ -47,7 +47,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 
 + (instancetype)databaseQueueWithPath:(NSString*)aPath flags:(int)openFlags {
     
-    FMDatabaseQueue *q = [[self alloc] initWithPath:aPath flags:openFlags];
+    FMDBDatabaseQueue *q = [[self alloc] initWithPath:aPath flags:openFlags];
     
     FMDBAutorelease(q);
     
@@ -55,7 +55,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 }
 
 + (Class)databaseClass {
-    return [FMDatabase class];
+    return [FMDBDatabase class];
 }
 
 - (instancetype)initWithPath:(NSString*)aPath flags:(int)openFlags vfs:(NSString *)vfsName {
@@ -133,7 +133,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     [[self database] interrupt];
 }
 
-- (FMDatabase*)database {
+- (FMDBDatabase*)database {
     if (!_db) {
        _db = FMDBReturnRetained([[[self class] databaseClass] databaseWithPath:_path]);
         
@@ -143,7 +143,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
         BOOL success = [_db open];
 #endif
         if (!success) {
-            NSLog(@"FMDatabaseQueue could not reopen database for path %@", _path);
+            NSLog(@"FMDBDatabaseQueue could not reopen database for path %@", _path);
             FMDBRelease(_db);
             _db  = 0x00;
             return 0x00;
@@ -153,26 +153,26 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     return _db;
 }
 
-- (void)inDatabase:(void (^)(FMDatabase *db))block {
+- (void)inDatabase:(void (^)(FMDBDatabase *db))block {
     /* Get the currently executing queue (which should probably be nil, but in theory could be another DB queue
      * and then check it against self to make sure we're not about to deadlock. */
-    FMDatabaseQueue *currentSyncQueue = (__bridge id)dispatch_get_specific(kDispatchQueueSpecificKey);
+    FMDBDatabaseQueue *currentSyncQueue = (__bridge id)dispatch_get_specific(kDispatchQueueSpecificKey);
     assert(currentSyncQueue != self && "inDatabase: was called reentrantly on the same queue, which would lead to a deadlock");
     
     FMDBRetain(self);
     
     dispatch_sync(_queue, ^() {
         
-        FMDatabase *db = [self database];
+        FMDBDatabase *db = [self database];
         block(db);
         
         if ([db hasOpenResultSets]) {
-            NSLog(@"Warning: there is at least one open result set around after performing [FMDatabaseQueue inDatabase:]");
+            NSLog(@"Warning: there is at least one open result set around after performing [FMDBDatabaseQueue inDatabase:]");
             
 #if defined(DEBUG) && DEBUG
             NSSet *openSetCopy = FMDBReturnAutoreleased([[db valueForKey:@"_openResultSets"] copy]);
             for (NSValue *rsInWrappedInATastyValueMeal in openSetCopy) {
-                FMResultSet *rs = (FMResultSet *)[rsInWrappedInATastyValueMeal pointerValue];
+                FMDBResultSet *rs = (FMDBResultSet *)[rsInWrappedInATastyValueMeal pointerValue];
                 NSLog(@"query: '%@'", [rs query]);
             }
 #endif
@@ -183,7 +183,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 }
 
 
-- (void)beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     FMDBRetain(self);
     dispatch_sync(_queue, ^() { 
         
@@ -209,15 +209,15 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
     FMDBRelease(self);
 }
 
-- (void)inDeferredTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)inDeferredTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     [self beginTransaction:YES withBlock:block];
 }
 
-- (void)inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)inTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     [self beginTransaction:NO withBlock:block];
 }
 
-- (NSError*)inSavePoint:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (NSError*)inSavePoint:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
 #if SQLITE_VERSION_NUMBER >= 3007000
     static unsigned long savePointIdx = 0;
     __block NSError *err = 0x00;
@@ -245,7 +245,7 @@ static const void * const kDispatchQueueSpecificKey = &kDispatchQueueSpecificKey
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);
-    return [NSError errorWithDomain:@"FMDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
+    return [NSError errorWithDomain:@"FMDBDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
 #endif
 }
 

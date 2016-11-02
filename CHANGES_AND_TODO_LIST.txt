@@ -14,10 +14,10 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Added renditions of `executeUpdate:values:error:` and `executeQuery:values:error:`, which in Swift 2 throw errors.
 
 2015.01.23
-    Added Swift renditions of the variadic methods of `FMDatabaseAdditions`.
+    Added Swift renditions of the variadic methods of `FMDBDatabaseAdditions`.
 
 2014.10.19
-    Added a `nextWithError:` to `FMResultSet`.  Thanks to Roshan Muralidharan for the patch.
+    Added a `nextWithError:` to `FMDBResultSet`.  Thanks to Roshan Muralidharan for the patch.
 
 2014.09.10
     New classes for exposing SQLite's FTS features.  Thanks to Andrew Goodale for the code.
@@ -39,13 +39,13 @@ If you would like to contribute some code ... awesome!  I just ask that you make
         - Created FMDB.h for those users who would prefer to do a single #import and get all of the key headers. 
 
 2014.01.17
-    It's never been safe to reentrantly call -[FMDatabaseQueue inDatabase:], as it would block.  Which can be kind of annoying - so now FMDB will crash instead (thanks to Mike Ash for the patch).
+    It's never been safe to reentrantly call -[FMDBDatabaseQueue inDatabase:], as it would block.  Which can be kind of annoying - so now FMDB will crash instead (thanks to Mike Ash for the patch).
 
 2013.12.10
-    Lots of little updates - new test targets, ARC simplification, and open flags to FMDatabaseQueue (thanks Graham Dennis), FMDatabaseQueue now has + (Class)databaseClass; which can return a new subclass of FMDatabase for custom stuff (thanks Timur Islamgulov),
+    Lots of little updates - new test targets, ARC simplification, and open flags to FMDBDatabaseQueue (thanks Graham Dennis), FMDBDatabaseQueue now has + (Class)databaseClass; which can return a new subclass of FMDBDatabase for custom stuff (thanks Timur Islamgulov),
     
     ## IMPORTANT##
-    int busyRetryTimeout has been change to NSTimeInterval busyTimeout in FMDatabase.  Instead of using it's homegrown "try again every so often if it's locked", we use sqlite's built in support for this.  Why wasn't FMDatabase using it before?  Because Gus didn't know about it.  Thanks to Jens Alfke for pointing this out and providing some code to work with.
+    int busyRetryTimeout has been change to NSTimeInterval busyTimeout in FMDBDatabase.  Instead of using it's homegrown "try again every so often if it's locked", we use sqlite's built in support for this.  Why wasn't FMDBDatabase using it before?  Because Gus didn't know about it.  Thanks to Jens Alfke for pointing this out and providing some code to work with.
 
 2013.10.21
     Fixed a problem where having statement caching turned on would cause issues when trying to use two result sets with the same query but different binding parameters.  Thanks to Nick Hodapp for the original patch.
@@ -72,7 +72,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
              appledoc --project-name FMDB --project-company ccgus --explicit-crossref --merge-categories --install-docset --output --ignore *.m ../Documentation .
 
 2013.05.24
-    Merged in Chris Wright's date format additions to FMDatabase.
+    Merged in Chris Wright's date format additions to FMDBDatabase.
     Fixed a problem where executeUpdateWithFormat: + %@ as a placeholder and the value was nil would cause a bad value to be inserted.  Thanks to rustybox on github for the fix.
     Fixed a variable argument crash if an incorrect number of arguments are passed in - patch by Joshua Tessier.
     Baked in support for the new application_id pragma in SQLite version 3.7.17:
@@ -83,7 +83,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 
 
 2013.04.17
-    Added two new methods to FMDatabase for setting crypto keys, which take NSData objects.  Thanks to Phillip Kast for the patch! <https://github.com/ccgus/fmdb/pull/135>
+    Added two new methods to FMDBDatabase for setting crypto keys, which take NSData objects.  Thanks to Phillip Kast for the patch! <https://github.com/ccgus/fmdb/pull/135>
 
 2013.02.19
     Fixed potential dereference of NULL outErr argument in -startSavePointWithName:error: and -releaseSavePointWithName:error:.  Thanks to Jim Correia for the patch!
@@ -92,7 +92,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Added an "extra" folder which contains additional things which might be useful for programmers, but which I don't think should be part of the standard classes.  At this time- there's only a single category in there which will load and save an on disk database to an in memory database.  Thanks to Peter Carr who provided these additions!  
 
 2013.01.31
-    Lazy init of columnNameToIndexMap in FMResultSet, and you are now able to use it before asking for any rows first.  Thanks to Daniel Dickison for the patch!
+    Lazy init of columnNameToIndexMap in FMDBResultSet, and you are now able to use it before asking for any rows first.  Thanks to Daniel Dickison for the patch!
 
 2012.12.17
     Now resetting cached statements before executing a query on them (as well as resetting them at the close of a result set).  There was an issue where if you used the same query twice without closing the result set of the first one, you would get results back from the previous query, or maybe an exhausted result set.  Thanks to note173 on github for pointing out the problem.
@@ -101,7 +101,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Changed up how the binding count is calculated when passing a dictionary for named parameter support.  Thanks to Samuel Chen for pointing out the problem.
 
 2012.11.23
-    Added keyed and indexed subscript support to FMResultSet- so you can do use the fancy boxed syntax against it (rs[@"foo"] & rs[0]).  Thanks to Robert Ryan for the patches!
+    Added keyed and indexed subscript support to FMDBResultSet- so you can do use the fancy boxed syntax against it (rs[@"foo"] & rs[0]).  Thanks to Robert Ryan for the patches!
 
 2012.08.08
     Fixed some problems when compiling with ARC against the 10.8 SDK (patch from Geoffrey Foster!).
@@ -114,18 +114,18 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Remembered to update the changes notes.  I've been forgetting to do this recently.
     
 2012.03.22:
-    Deprecated resultDict and replaced it with resultDictionary on FMResultSet.  Slight change in behavior as well- resultDictionary will return case sensitive keys.
+    Deprecated resultDict and replaced it with resultDictionary on FMDBResultSet.  Slight change in behavior as well- resultDictionary will return case sensitive keys.
     Fixed a problem with getTableSchema: not working with table names that start with a number.
 
 
 2012.02.10:
-    Changed up FMDatabasePool so that you can't "pop" it from a pool anymore.  I just consider this too risky- use the block based functions instead.
-    Also provided a good reason in main.m for why you should use FMDatabaseQueue instead.  Search for "ONLY_USE_THE_POOL_IF_YOU_ARE_DOING_READS".
+    Changed up FMDBDatabasePool so that you can't "pop" it from a pool anymore.  I just consider this too risky- use the block based functions instead.
+    Also provided a good reason in main.m for why you should use FMDBDatabaseQueue instead.  Search for "ONLY_USE_THE_POOL_IF_YOU_ARE_DOING_READS".
     I consider this branch 2.0 at this point- I'll let it bake for a couple of days, then push it to the main repo.
     
 
 2012.01.06:
-    Added a new method to FMDatabase to make custom functions out of a block:
+    Added a new method to FMDBDatabase to make custom functions out of a block:
     - (void)makeFunctionNamed:(NSString*)name maximumArguments:(int)count withBlock:(void (^)(sqlite3_context *context, int argc, sqlite3_value **argv))block
     
     Check out the function "testSQLiteFunction" in main.m for an example.
@@ -138,7 +138,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Changed some methods to properties.  Hello 2011.
     Added a warning when you try and use a database that wasn't opened.  Hacked together based on patches from Drarok Ithaqua.
     Fixed a problem under GC where leaked statments were keeping a database from closing.  Patch from Chris Dolan.
-    Added + (BOOL)isThreadSafe to FMDatabase.  It'll let you know if the version of SQLite you are running is compiled with it's thread safe options.  THIS DOES NOT MEAN FMDATABASE IS THREAD SAFE.  I haven't done a review of it for this case, so I'm just saying.
+    Added + (BOOL)isThreadSafe to FMDBDatabase.  It'll let you know if the version of SQLite you are running is compiled with it's thread safe options.  THIS DOES NOT MEAN FMDBDatabase IS THREAD SAFE.  I haven't done a review of it for this case, so I'm just saying.
 
 2011.04.09
     Added a method to validate a SQL statement.
@@ -148,14 +148,14 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 
 2011.03.12
     Added compatibility with garbage collection.
-    When an FMDatabase is closed, all open FMResultSets pertaining to that database are also closed.
+    When an FMDBDatabase is closed, all open FMResultSets pertaining to that database are also closed.
     Added:
     - (id) objectForColumnIndex:(int)columnIdx;
     - (id) objectForColumnName:(NSString*)columnName;
     Changes by Dave DeLong.
 
 2011.02.05
-    The -(int)changes; method on FMDatabase is a bit more robust now, and there's a new static library target.  And if a database path is nil, we now open up a :memory: database. Patch from Pascal Pfiffner!
+    The -(int)changes; method on FMDBDatabase is a bit more robust now, and there's a new static library target.  And if a database path is nil, we now open up a :memory: database. Patch from Pascal Pfiffner!
 
 2011.01.13
     Happy New Year!
@@ -169,10 +169,10 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Only execute the assertion macros if NS_BLOCK_ASSERTIONS is not set.  Patch from David E. Wheeler!
 
 2010.09.19
-    The signature for FMDatabase's executeQuery* methods now return FMResultSet instead if id.  Patch from Augie Fackler!
+    The signature for FMDatabase's executeQuery* methods now return FMDBResultSet instead if id.  Patch from Augie Fackler!
 
 2010.08.24:
-    Added resultDict to FMResultSet, which returns a dictionary of column values.  Thanks to Pascal Pfiffner for the patch!
+    Added resultDict to FMDBResultSet, which returns a dictionary of column values.  Thanks to Pascal Pfiffner for the patch!
     Cleaned up some formatting.
 
 2010.06.21:
@@ -211,13 +211,13 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 
     
     Added:
-        - (FMResultSet*) getTableSchema:(NSString*)tableName;
+        - (FMDBResultSet*) getTableSchema:(NSString*)tableName;
         - (BOOL) columnExists:(NSString*)tableName columnName:(NSString*)columnName;
     
-    to FMDatabaseAdditions.  Patch from OZLB
+    to FMDBDatabaseAdditions.  Patch from OZLB
     
 2009.09.22
-    Disabled the following FMDatabaseAdditions when compiled as 64 bit:
+    Disabled the following FMDBDatabaseAdditions when compiled as 64 bit:
         - (id)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments;
         and
         - (BOOL) executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
@@ -227,15 +227,15 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     
     Added:
         - (BOOL) tableExists:(NSString*)tableName;
-        - (FMResultSet*) getDataBaseSchema:(NSString*)tableName;
+        - (FMDBResultSet*) getDataBaseSchema:(NSString*)tableName;
     
-    to FMDatabaseAdditions.  Patch from OZLB
+    to FMDBDatabaseAdditions.  Patch from OZLB
     
     
 2009.09.1
     Added:
     - (BOOL) openWithFlags:(int)flags;
-    To FMDatabase, which allows you to open up the database with certain flags for sqlite 3.5+
+    To FMDBDatabase, which allows you to open up the database with certain flags for sqlite 3.5+
     
     Thanks to Dan Wright for the addition.
     
@@ -243,7 +243,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Added:
     - (const unsigned char *) UTF8StringForColumnIndex:(int)columnIdx;
     - (const unsigned char *) UTF8StringForColumnName:(NSString*)columnName;
-    to FMResultSet, patch from Nathan Stitt.
+    to FMDBResultSet, patch from Nathan Stitt.
 
 2009.05.23
     Added:
@@ -274,7 +274,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     And finally, just general code cleanup + refactoring.  Happy Cinco de Mayo!
     
 2009.04.27
-    added columnNameForIndex: to FMResultSet which returns the column name for the given index.
+    added columnNameForIndex: to FMDBResultSet which returns the column name for the given index.
 
 2009.04.12
     dateForColumnIndex: now returns null, if a null value was inserted into its table row.  Patch by Robbie Hanson.
@@ -283,12 +283,12 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 Now importing unistd.h, which the absence of was causing some problems on the iPhone.  Reported by multiple people, but Hal Mueller actually got me to make the change.
 
 2009.03.03
-Added (int)changes; to FMDatabase.  From the sqlite docs: "This function returns the number of database rows that were changed (or inserted or deleted) by the most recent SQL statement."
+Added (int)changes; to FMDBDatabase.  From the sqlite docs: "This function returns the number of database rows that were changed (or inserted or deleted) by the most recent SQL statement."
 Patch contributed by Tracy Harton
 
 2009.01.02
 HAPPY NEW YEAR WOOOO!
-Added dataNoCopyForColumn: and dataNoCopyForColumnIndex: to FMResultSet.
+Added dataNoCopyForColumn: and dataNoCopyForColumnIndex: to FMDBResultSet.
 If you are going to use this data after you iterate over the next row, or after you close the
 result set, make sure to make a copy of the data first (or just use dataForColumn/dataForColumnIndex)
 If you don't, you're going to be in a world of hurt when you try and use the data.
@@ -297,7 +297,7 @@ If you don't, you're going to be in a world of hurt when you try and use the dat
 Some changes to make Clang's static analysis happy (http://clang.llvm.org/StaticAnalysis.html). (patch provided by Matt Comi)
 
 2008.12.14
-Added longLongIntForColumn: and longLongIntForColumnIndex: to FMResultSet. (patch provided by Will Cosgrove)
+Added longLongIntForColumn: and longLongIntForColumnIndex: to FMDBResultSet. (patch provided by Will Cosgrove)
 
 2008.11.20
 Added a check for NSNull in bindObject, which works just like passing nil does (patch provided by Robert Tolar Haining)
@@ -312,7 +312,7 @@ Some bug fixes + warning fixes from Brian Stern (thanks again Brian!)
 Fixed a crasher in FMResultSet's close where if the parent DB was already released, the result set would be talking to a bad address and fmdb went boom. (thanks to Brian Stern for the patch)
 
 2008.06.06
-Thanks to Zach Wily for the return of FMDatabaseAdditions!
+Thanks to Zach Wily for the return of FMDBDatabaseAdditions!
 
 2008.06.03:
 Removed all exceptions, now you should use [db hadError] to check for an error.  I hate (ns)exceptions, I'm not sure why I put them in.
@@ -326,7 +326,7 @@ Thanks to Kris Markel for some extra trace outputs, and a fix where the database
 Thanks to Daniel Pasco and Bil Moorehead for catching a problem where the column names lookup table was created on every row iteration.  Doh! 
 
 2008.07.18
-FMDatabase will now cache statements if you turn it on using shouldCacheStatements:YES.  In theory, this should speed things up.  Test it out, let me know if it makes things good for ya.
+FMDBDatabase will now cache statements if you turn it on using shouldCacheStatements:YES.  In theory, this should speed things up.  Test it out, let me know if it makes things good for ya.
 Note: This is pretty new code, so it hasn't gone through a lot of testing... you've been warned. (seems to work though!)
 
 2008.00.01

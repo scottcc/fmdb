@@ -7,8 +7,8 @@
 //
 
 #import "FMDBTempDBTests.h"
-#import "FMDatabase+FTS3.h"
-#import "FMTokenizers.h"
+#import "FMDBDatabase+FTS3.h"
+#import "FMDBTokenizers.h"
 
 @interface FMDatabaseFTS3Tests : FMDBTempDBTests
 
@@ -28,7 +28,7 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
 
 @implementation FMDatabaseFTS3Tests
 
-+ (void)populateDatabase:(FMDatabase *)db
++ (void)populateDatabase:(FMDBDatabase *)db
 {
     [db executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
     
@@ -36,11 +36,11 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
     [db executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
 
     // Create a tokenizer instance that will not be de-allocated when the method finishes.
-    g_simpleTok = [[FMSimpleTokenizer alloc] initWithLocale:NULL];
-    [FMDatabase registerTokenizer:g_simpleTok withKey:@"testTok"];
+    g_simpleTok = [[FMDBSimpleTokenizer alloc] initWithLocale:NULL];
+    [FMDBDatabase registerTokenizer:g_simpleTok withKey:@"testTok"];
     
     g_depluralizeTok = [FMDepluralizerTokenizer tokenizerWithBaseTokenizer:g_simpleTok];
-    [FMDatabase registerTokenizer:g_depluralizeTok withKey:@"depluralize"];
+    [FMDBDatabase registerTokenizer:g_depluralizeTok withKey:@"depluralize"];
 }
 
 - (void)setUp
@@ -57,7 +57,7 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
 
 - (void)testOffsets
 {
-    FMResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
+    FMDBResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
     
     if ([results next]) {
         FMTextOffsets *offsets = [results offsetsForColumnIndex:0];
@@ -83,13 +83,13 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
     BOOL ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE simple USING fts3(tokenize=fmdb testTok)"];
     XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db lastErrorMessage]);
 
-    // The FMSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
+    // The FMDBSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
     NSString *text = @"I like the band Queensrÿche. They are really great musicians.";
     
     ok = [self.db executeUpdate:@"INSERT INTO simple VALUES(?)", text];
     XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db lastErrorMessage]);
     
-    FMResultSet *results = [self.db executeQuery:@"SELECT * FROM simple WHERE simple MATCH ?", @"Queensrÿche"];
+    FMDBResultSet *results = [self.db executeQuery:@"SELECT * FROM simple WHERE simple MATCH ?", @"Queensrÿche"];
     XCTAssertTrue([results next], @"Failed to find result");
     
     ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE depluralize_t USING fts3(tokenize=fmdb depluralize)"];

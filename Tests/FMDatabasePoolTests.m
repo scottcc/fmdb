@@ -10,13 +10,13 @@
 
 @interface FMDatabasePoolTests : FMDBTempDBTests
 
-@property FMDatabasePool *pool;
+@property FMDBDatabasePool *pool;
 
 @end
 
 @implementation FMDatabasePoolTests
 
-+ (void)populateDatabase:(FMDatabase *)db
++ (void)populateDatabase:(FMDBDatabase *)db
 {
     [db executeUpdate:@"create table easy (a text)"];
     [db executeUpdate:@"create table easy2 (a text)"];
@@ -36,7 +36,7 @@
     [super setUp];
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
-    [self setPool:[FMDatabasePool databasePoolWithPath:self.databasePath]];
+    [self setPool:[FMDBDatabasePool databasePoolWithPath:self.databasePath]];
     
     [[self pool] setDelegate:self];
     
@@ -55,9 +55,9 @@
 
 - (void)testDatabaseCreation
 {
-    __block FMDatabase *db1;
+    __block FMDBDatabase *db1;
     
-    [self.pool inDatabase:^(FMDatabase *db) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
         
         XCTAssertEqual([self.pool countOfOpenDatabases], (NSUInteger)1, @"Should only have one database at this point");
         
@@ -65,10 +65,10 @@
         
     }];
     
-    [self.pool inDatabase:^(FMDatabase *db) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
         XCTAssertEqualObjects(db, db1, @"We should get the same database back because there was no need to create a new one");
         
-        [self.pool inDatabase:^(FMDatabase *db2) {
+        [self.pool inDatabase:^(FMDBDatabase *db2) {
             XCTAssertNotEqualObjects(db2, db, @"We should get a different database because the first was in use.");
         }];
         
@@ -83,7 +83,7 @@
 
 - (void)testCheckedInCheckoutOutCount
 {
-    [self.pool inDatabase:^(FMDatabase *aDb) {
+    [self.pool inDatabase:^(FMDBDatabase *aDb) {
         
         XCTAssertEqual([self.pool countOfCheckedInDatabases],   (NSUInteger)0);
         XCTAssertEqual([self.pool countOfCheckedOutDatabases],  (NSUInteger)1);
@@ -91,7 +91,7 @@
         XCTAssertTrue(([aDb executeUpdate:@"insert into easy (a) values (?)", @"hi"]));
         
         // just for fun.
-        FMResultSet *rs = [aDb executeQuery:@"select * from easy"];
+        FMDBResultSet *rs = [aDb executeQuery:@"select * from easy"];
         XCTAssertNotNil(rs);
         XCTAssertTrue([rs next]);
         while ([rs next]) { ; } // whatevers.
@@ -108,9 +108,9 @@
 {
     [self.pool setMaximumNumberOfDatabasesToCreate:2];
     
-    [self.pool inDatabase:^(FMDatabase *db) {
-        [self.pool inDatabase:^(FMDatabase *db2) {
-            [self.pool inDatabase:^(FMDatabase *db3) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
+        [self.pool inDatabase:^(FMDBDatabase *db2) {
+            [self.pool inDatabase:^(FMDBDatabase *db3) {
                 XCTAssertEqual([self.pool countOfOpenDatabases], (NSUInteger)2);
                 XCTAssertNil(db3, @"The third database must be nil because we have a maximum of 2 databases in the pool");
             }];
@@ -121,7 +121,7 @@
 
 - (void)testTransaction
 {
-    [self.pool inTransaction:^(FMDatabase *adb, BOOL *rollback) {
+    [self.pool inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
         [adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1001]];
         [adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1002]];
         [adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1003]];
@@ -138,8 +138,8 @@
 
 - (void)testSelect
 {
-    [self.pool inDatabase:^(FMDatabase *db) {
-        FMResultSet *rs = [db executeQuery:@"select * from easy where a = ?", [NSNumber numberWithInt:1001]];
+    [self.pool inDatabase:^(FMDBDatabase *db) {
+        FMDBResultSet *rs = [db executeQuery:@"select * from easy where a = ?", [NSNumber numberWithInt:1001]];
         XCTAssertNotNil(rs);
         XCTAssertTrue ([rs next]);
         XCTAssertFalse([rs next]);
@@ -148,7 +148,7 @@
 
 - (void)testTransactionRollback
 {
-    [self.pool inDeferredTransaction:^(FMDatabase *adb, BOOL *rollback) {
+    [self.pool inDeferredTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
         XCTAssertTrue(([adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1004]]));
         XCTAssertTrue(([adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1005]]));
         XCTAssertTrue([[adb executeQuery:@"select * from easy where a == '1004'"] next], @"1004 should be in database");
@@ -156,7 +156,7 @@
         *rollback = YES;
     }];
     
-    [self.pool inDatabase:^(FMDatabase *db) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
         XCTAssertFalse([[db executeQuery:@"select * from easy where a == '1004'"] next], @"1004 should not be in database");
     }];
 
@@ -167,7 +167,7 @@
 
 - (void)testSavepoint
 {
-    NSError *err = [self.pool inSavePoint:^(FMDatabase *db, BOOL *rollback) {
+    NSError *err = [self.pool inSavePoint:^(FMDBDatabase *db, BOOL *rollback) {
         [db executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1006]];
     }];
     
@@ -176,7 +176,7 @@
 
 - (void)testNestedSavepointRollback
 {
-    NSError *err = [self.pool inSavePoint:^(FMDatabase *adb, BOOL *rollback) {
+    NSError *err = [self.pool inSavePoint:^(FMDBDatabase *adb, BOOL *rollback) {
         XCTAssertFalse([adb hadError]);
         XCTAssertTrue(([adb executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:1009]]));
         
@@ -189,8 +189,8 @@
     
     XCTAssertNil(err);
     
-    [self.pool inDatabase:^(FMDatabase *db) {
-        FMResultSet *rs = [db executeQuery:@"select * from easy where a = ?", [NSNumber numberWithInt:1009]];
+    [self.pool inDatabase:^(FMDBDatabase *db) {
+        FMDBResultSet *rs = [db executeQuery:@"select * from easy where a = ?", [NSNumber numberWithInt:1009]];
         XCTAssertTrue ([rs next]);
         XCTAssertFalse([rs next]); // close it out.
         
@@ -201,9 +201,9 @@
 
 - (void)testLikeStringQuery
 {
-    [self.pool inDatabase:^(FMDatabase *db) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
         int count = 0;
-        FMResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
+        FMDBResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
         while ([rsl next]) {
             count++;
         }
@@ -235,8 +235,8 @@
             [NSThread sleepForTimeInterval:.001];
         }
         
-        [self.pool inDatabase:^(FMDatabase *db) {
-            FMResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
+        [self.pool inDatabase:^(FMDBDatabase *db) {
+            FMDBResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
             XCTAssertNotNil(rsl);
             int i = 0;
             while ([rsl next]) {
@@ -253,7 +253,7 @@
 }
 
 
-- (BOOL)databasePool:(FMDatabasePool*)pool shouldAddDatabaseToPool:(FMDatabase*)database {
+- (BOOL)databasePool:(FMDBDatabasePool*)pool shouldAddDatabaseToPool:(FMDBDatabase*)database {
     [database setMaxBusyRetryTimeInterval:10];
     // [database setCrashOnErrors:YES];
     return YES;
@@ -271,8 +271,8 @@
         if (nby % 2 == 1) {
             [NSThread sleepForTimeInterval:.01];
             
-            [self.pool inTransaction:^(FMDatabase *db, BOOL *rollback) {
-                FMResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
+            [self.pool inTransaction:^(FMDBDatabase *db, BOOL *rollback) {
+                FMDBResultSet *rsl = [db executeQuery:@"select * from likefoo where foo like 'h%'"];
                 XCTAssertNotNil(rsl);
                 while ([rsl next]) {
                     ;// whatever.
@@ -286,7 +286,7 @@
             [NSThread sleepForTimeInterval:.01];
         }
         
-        [self.pool inTransaction:^(FMDatabase *db, BOOL *rollback) {
+        [self.pool inTransaction:^(FMDBDatabase *db, BOOL *rollback) {
             XCTAssertTrue([db executeUpdate:@"insert into likefoo values ('1')"]);
             XCTAssertTrue([db executeUpdate:@"insert into likefoo values ('2')"]);
             XCTAssertTrue([db executeUpdate:@"insert into likefoo values ('3')"]);
@@ -295,7 +295,7 @@
     
     [self.pool releaseAllDatabases];
     
-    [self.pool inDatabase:^(FMDatabase *db) {
+    [self.pool inDatabase:^(FMDBDatabase *db) {
         XCTAssertTrue([db executeUpdate:@"insert into likefoo values ('1')"]);
     }];
 }

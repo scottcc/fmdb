@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension FMDatabase {
+extension FMDBDatabase {
     
     /// This is a rendition of executeQuery that handles Swift variadic parameters
     /// for the values to be bound to the ? placeholders in the SQL.
@@ -18,9 +18,9 @@ extension FMDatabase {
     /// - parameter sql:     The SQL statement to be used.
     /// - parameter values:  The values to be bound to the ? placeholders
     ///
-    /// - returns:           This returns FMResultSet if successful. If unsuccessful, it throws an error.
+    /// - returns:           This returns FMDBResultSet if successful. If unsuccessful, it throws an error.
     
-    func executeQuery(sql:String, _ values: AnyObject...) throws -> FMResultSet {
+    func executeQuery(sql:String, _ values: AnyObject...) throws -> FMDBResultSet {
         return try executeQuery(sql, values: values as [AnyObject]);
     }
     

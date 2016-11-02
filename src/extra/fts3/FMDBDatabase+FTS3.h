@@ -1,12 +1,12 @@
 //
-//  FMDatabase+FTS3.h
+//  FMDBDatabase+FTS3.h
 //  fmdb
 //
 //  Created by Andrew on 3/27/14.
 //  Copyright (c) 2014 Andrew Goodale. All rights reserved.
 //
 
-#import <FMDB/FMDatabase.h>
+#import <FMDB/FMDBDatabase.h>
 
 /**
  Names of commands that can be issued against an FTS table.
@@ -22,7 +22,7 @@ extern NSString *const kFTSCommandAutoMerge;       // "automerge=%u"
 /**
   This category provides methods to access the FTS3 extensions in SQLite.
  */
-@interface FMDatabase (FTS3)
+@interface FMDBDatabase (FTS3)
 
 /**
  Register a delegate implementation in the global table. This should be used when using a single tokenizer.
@@ -89,7 +89,7 @@ typedef struct FMTokenizerCursor
 
 /**
  Enumerate each set of offsets in the result. The column number can be turned into a column name
- using `[FMResultSet columnNameForIndex:]`. The `matchRange` is in UTF-8 byte positions, so it must be 
+ using `[FMDBResultSet columnNameForIndex:]`. The `matchRange` is in UTF-8 byte positions, so it must be 
  modified to use with `NSString` data.
  */
 - (void)enumerateWithBlock:(void (^)(NSInteger columnNumber, NSInteger termNumber, NSRange matchRange))block;
@@ -99,7 +99,7 @@ typedef struct FMTokenizerCursor
 /**
  A category that adds support for the encoded data returned by FTS3 functions.
  */
-@interface FMResultSet (FTS3)
+@interface FMDBResultSet (FTS3)
 
 /**
  Returns a structure containing values from the `offsets()` function. Make sure the column index corresponds

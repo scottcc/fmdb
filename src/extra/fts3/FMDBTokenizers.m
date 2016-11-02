@@ -1,14 +1,14 @@
 //
-//  FMTokenizers.m
+//  FMDBTokenizers.m
 //  fmdb
 //
 //  Created by Andrew on 4/9/14.
 //  Copyright (c) 2014 Andrew Goodale. All rights reserved.
 //
 
-#import "FMTokenizers.h"
+#import "FMDBTokenizers.h"
 
-@implementation FMSimpleTokenizer
+@implementation FMDBSimpleTokenizer
 {
     CFLocaleRef m_locale;
 }
@@ -66,14 +66,14 @@
 
 - (void)closeTokenizerCursor:(FMTokenizerCursor *)cursor
 {
-    // FMDatabase will CFRelease the tokenString and the userObject.
+    // FMDBDatabase will CFRelease the tokenString and the userObject.
 }
 
 @end
 
 #pragma mark
 
-@implementation FMStopWordTokenizer
+@implementation FMDBStopWordTokenizer
 {
     id<FMTokenizerDelegate> m_baseTokenizer;
 }

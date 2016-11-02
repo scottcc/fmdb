@@ -1,4 +1,4 @@
-#import "FMDatabase.h"
+#import "FMDBDatabase.h"
 #import "unistd.h"
 #import <objc/runtime.h>
 
@@ -8,21 +8,21 @@
 #import <sqlite3.h>
 #endif
 
-@interface FMDatabase ()
+@interface FMDBDatabase ()
 
-- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
+- (FMDBResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
 - (BOOL)executeUpdate:(NSString*)sql error:(NSError**)outErr withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
 
 @end
 
-@implementation FMDatabase
+@implementation FMDBDatabase
 @synthesize cachedStatements=_cachedStatements;
 @synthesize logsErrors=_logsErrors;
 @synthesize crashOnErrors=_crashOnErrors;
 @synthesize checkedOut=_checkedOut;
 @synthesize traceExecution=_traceExecution;
 
-#pragma mark FMDatabase instantiation and deallocation
+#pragma mark FMDBDatabase instantiation and deallocation
 
 + (instancetype)databaseWithPath:(NSString*)aPath {
     return FMDBReturnAutoreleased([[self alloc] initWithPath:aPath]);
@@ -78,7 +78,7 @@
 
 // returns 0x0240 for version 2.4.  This makes it super easy to do things like:
 // /* need to make sure to do X with FMDB version 2.4 or later */
-// if ([FMDatabase FMDBVersion] >= 0x0240) { … }
+// if ([FMDBDatabase FMDBVersion] >= 0x0240) { … }
 
 + (SInt32)FMDBVersion {
     
@@ -232,7 +232,7 @@
 //       files with appledoc will prevent this problem from occurring.
 
 static int FMDBDatabaseBusyHandler(void *f, int count) {
-    FMDatabase *self = (__bridge FMDatabase*)f;
+    FMDBDatabase *self = (__bridge FMDBDatabase*)f;
     
     if (count == 0) {
         self->_startBusyRetryTime = [NSDate timeIntervalSinceReferenceDate];
@@ -276,7 +276,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 
 
 // we no longer make busyRetryTimeout public
-// but for folks who don't bother noticing that the interface to FMDatabase changed,
+// but for folks who don't bother noticing that the interface to FMDBDatabase changed,
 // we'll still implement the method so they don't get suprise crashes
 - (int)busyRetryTimeout {
     NSLog(@"%s:%d", __FUNCTION__, __LINE__);
@@ -301,7 +301,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     //Copy the set so we don't get mutation errors
     NSSet *openSetCopy = FMDBReturnAutoreleased([_openResultSets copy]);
     for (NSValue *rsInWrappedInATastyValueMeal in openSetCopy) {
-        FMResultSet *rs = (FMResultSet *)[rsInWrappedInATastyValueMeal pointerValue];
+        FMDBResultSet *rs = (FMDBResultSet *)[rsInWrappedInATastyValueMeal pointerValue];
         
         [rs setParentDB:nil];
         [rs close];
@@ -310,7 +310,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     }
 }
 
-- (void)resultSetDidClose:(FMResultSet *)resultSet {
+- (void)resultSetDidClose:(FMDBResultSet *)resultSet {
     NSValue *setValue = [NSValue valueWithNonretainedObject:resultSet];
     
     [_openResultSets removeObject:setValue];
@@ -445,7 +445,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
         return NO;
     }
     
-    FMResultSet *rs = [self executeQuery:@"select name from sqlite_master where type='table'"];
+    FMDBResultSet *rs = [self executeQuery:@"select name from sqlite_master where type='table'"];
     
     if (rs) {
         [rs close];
@@ -456,11 +456,11 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 }
 
 - (void)warnInUse {
-    NSLog(@"The FMDatabase %@ is currently in use.", self);
+    NSLog(@"The FMDBDatabase %@ is currently in use.", self);
     
 #ifndef NS_BLOCK_ASSERTIONS
     if (_crashOnErrors) {
-        NSAssert(false, @"The FMDatabase %@ is currently in use.", self);
+        NSAssert(false, @"The FMDBDatabase %@ is currently in use.", self);
         abort();
     }
 #endif
@@ -470,11 +470,11 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     
     if (!_db) {
         
-        NSLog(@"The FMDatabase %@ is not open.", self);
+        NSLog(@"The FMDBDatabase %@ is not open.", self);
         
 #ifndef NS_BLOCK_ASSERTIONS
         if (_crashOnErrors) {
-            NSAssert(false, @"The FMDatabase %@ is not open.", self);
+            NSAssert(false, @"The FMDBDatabase %@ is not open.", self);
             abort();
         }
 #endif
@@ -508,7 +508,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 - (NSError*)errorWithMessage:(NSString*)message {
     NSDictionary* errorMessage = [NSDictionary dictionaryWithObject:message forKey:NSLocalizedDescriptionKey];
     
-    return [NSError errorWithDomain:@"FMDatabase" code:sqlite3_errcode(_db) userInfo:errorMessage];
+    return [NSError errorWithDomain:@"FMDBDatabase" code:sqlite3_errcode(_db) userInfo:errorMessage];
 }
 
 - (NSError*)lastError {
@@ -744,11 +744,11 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 
 #pragma mark Execute queries
 
-- (FMResultSet *)executeQuery:(NSString *)sql withParameterDictionary:(NSDictionary *)arguments {
+- (FMDBResultSet *)executeQuery:(NSString *)sql withParameterDictionary:(NSDictionary *)arguments {
     return [self executeQuery:sql withArgumentsInArray:nil orDictionary:arguments orVAList:nil];
 }
 
-- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
+- (FMDBResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
     
     if (![self databaseExists]) {
         return 0x00;
@@ -764,7 +764,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     int rc                  = 0x00;
     sqlite3_stmt *pStmt     = 0x00;
     FMStatement *statement  = 0x00;
-    FMResultSet *rs         = 0x00;
+    FMDBResultSet *rs         = 0x00;
     
     if (_traceExecution && sql) {
         NSLog(@"%@ executeQuery: %@", self, sql);
@@ -879,7 +879,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     }
     
     // the statement gets closed in rs's dealloc or [rs close];
-    rs = [FMResultSet resultSetWithStatement:statement usingParentDatabase:self];
+    rs = [FMDBResultSet resultSetWithStatement:statement usingParentDatabase:self];
     [rs setQuery:sql];
     
     NSValue *openResultSet = [NSValue valueWithNonretainedObject:rs];
@@ -894,7 +894,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     return rs;
 }
 
-- (FMResultSet *)executeQuery:(NSString*)sql, ... {
+- (FMDBResultSet *)executeQuery:(NSString*)sql, ... {
     va_list args;
     va_start(args, sql);
     
@@ -904,7 +904,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     return result;
 }
 
-- (FMResultSet *)executeQueryWithFormat:(NSString*)format, ... {
+- (FMDBResultSet *)executeQueryWithFormat:(NSString*)format, ... {
     va_list args;
     va_start(args, format);
     
@@ -917,19 +917,19 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     return [self executeQuery:sql withArgumentsInArray:arguments];
 }
 
-- (FMResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments {
+- (FMDBResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments {
     return [self executeQuery:sql withArgumentsInArray:arguments orDictionary:nil orVAList:nil];
 }
 
-- (FMResultSet *)executeQuery:(NSString *)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error {
-    FMResultSet *rs = [self executeQuery:sql withArgumentsInArray:values orDictionary:nil orVAList:nil];
+- (FMDBResultSet *)executeQuery:(NSString *)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error {
+    FMDBResultSet *rs = [self executeQuery:sql withArgumentsInArray:values orDictionary:nil orVAList:nil];
     if (!rs && error) {
         *error = [self lastError];
     }
     return rs;
 }
 
-- (FMResultSet *)executeQuery:(NSString*)sql withVAList:(va_list)args {
+- (FMDBResultSet *)executeQuery:(NSString*)sql withVAList:(va_list)args {
     return [self executeQuery:sql withArgumentsInArray:nil orDictionary:nil orVAList:args];
 }
 
@@ -1394,7 +1394,7 @@ static NSString *FMDBEscapeSavePointName(NSString *savepointName) {
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);
-    return [NSError errorWithDomain:@"FMDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
+    return [NSError errorWithDomain:@"FMDBDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
 #endif
 }
 

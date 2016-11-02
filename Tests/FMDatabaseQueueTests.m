@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "FMDatabaseQueue.h"
+#import "FMDBDatabaseQueue.h"
 
 #if FMDB_SQLITE_STANDALONE
 #import <sqlite3/sqlite3.h>
@@ -17,13 +17,13 @@
 
 @interface FMDatabaseQueueTests : FMDBTempDBTests
 
-@property FMDatabaseQueue *queue;
+@property FMDBDatabaseQueue *queue;
 
 @end
 
 @implementation FMDatabaseQueueTests
 
-+ (void)populateDatabase:(FMDatabase *)db
++ (void)populateDatabase:(FMDBDatabase *)db
 {
     [db executeUpdate:@"create table easy (a text)"];
     
@@ -38,7 +38,7 @@
     [super setUp];
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
-    self.queue = [FMDatabaseQueue databaseQueueWithPath:self.databasePath];
+    self.queue = [FMDBDatabaseQueue databaseQueueWithPath:self.databasePath];
 }
 
 - (void)tearDown
@@ -49,9 +49,9 @@
 
 - (void)testQueueSelect
 {
-    [self.queue inDatabase:^(FMDatabase *adb) {
+    [self.queue inDatabase:^(FMDBDatabase *adb) {
         int count = 0;
-        FMResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
+        FMDBResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
         while ([rsl next]) {
             count++;
         }
@@ -70,12 +70,12 @@
 
 - (void)testReadOnlyQueue
 {
-    FMDatabaseQueue *queue2 = [FMDatabaseQueue databaseQueueWithPath:self.databasePath flags:SQLITE_OPEN_READONLY];
+    FMDBDatabaseQueue *queue2 = [FMDBDatabaseQueue databaseQueueWithPath:self.databasePath flags:SQLITE_OPEN_READONLY];
     XCTAssertNotNil(queue2);
 
     {
-        [queue2 inDatabase:^(FMDatabase *db2) {
-            FMResultSet *rs1 = [db2 executeQuery:@"SELECT * FROM qfoo"];
+        [queue2 inDatabase:^(FMDBDatabase *db2) {
+            FMDBResultSet *rs1 = [db2 executeQuery:@"SELECT * FROM qfoo"];
             XCTAssertNotNil(rs1);
 
             [rs1 close];
@@ -86,8 +86,8 @@
         [queue2 close];
         
         // Check that when we re-open the database, it's still read-only
-        [queue2 inDatabase:^(FMDatabase *db2) {
-            FMResultSet *rs1 = [db2 executeQuery:@"SELECT * FROM qfoo"];
+        [queue2 inDatabase:^(FMDBDatabase *db2) {
+            FMDBResultSet *rs1 = [db2 executeQuery:@"SELECT * FROM qfoo"];
             XCTAssertNotNil(rs1);
             
             [rs1 close];
@@ -109,8 +109,8 @@
         if (nby % 2 == 1) {
             [NSThread sleepForTimeInterval:.01];
             
-            [self.queue inTransaction:^(FMDatabase *adb, BOOL *rollback) {
-                FMResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
+            [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
+                FMDBResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
                 while ([rsl next]) {
                     ;// whatever.
                 }
@@ -122,7 +122,7 @@
             [NSThread sleepForTimeInterval:.01];
         }
         
-        [self.queue inTransaction:^(FMDatabase *adb, BOOL *rollback) {
+        [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
             XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('1')"]);
             XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('2')"]);
             XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('3')"]);
@@ -131,20 +131,20 @@
     
     [self.queue close];
     
-    [self.queue inDatabase:^(FMDatabase *adb) {
+    [self.queue inDatabase:^(FMDBDatabase *adb) {
         XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('1')"]);
     }];
 }
 
 - (void)testTransaction
 {
-    [self.queue inDatabase:^(FMDatabase *adb) {
+    [self.queue inDatabase:^(FMDBDatabase *adb) {
         [adb executeUpdate:@"create table transtest (a integer)"];
         XCTAssertTrue([adb executeUpdate:@"insert into transtest values (1)"]);
         XCTAssertTrue([adb executeUpdate:@"insert into transtest values (2)"]);
         
         int rowCount = 0;
-        FMResultSet *ars = [adb executeQuery:@"select * from transtest"];
+        FMDBResultSet *ars = [adb executeQuery:@"select * from transtest"];
         while ([ars next]) {
             rowCount++;
         }
@@ -152,7 +152,7 @@
         XCTAssertEqual(rowCount, 2);
     }];
     
-    [self.queue inTransaction:^(FMDatabase *adb, BOOL *rollback) {
+    [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
         XCTAssertTrue([adb executeUpdate:@"insert into transtest values (3)"]);
         
         if (YES) {
@@ -164,10 +164,10 @@
         XCTFail(@"This shouldn't be reached");
     }];
     
-    [self.queue inDatabase:^(FMDatabase *adb) {
+    [self.queue inDatabase:^(FMDBDatabase *adb) {
         
         int rowCount = 0;
-        FMResultSet *ars = [adb executeQuery:@"select * from transtest"];
+        FMDBResultSet *ars = [adb executeQuery:@"select * from transtest"];
         while ([ars next]) {
             rowCount++;
         }

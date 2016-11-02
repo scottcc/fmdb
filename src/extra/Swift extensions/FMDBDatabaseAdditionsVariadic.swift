@@ -5,17 +5,17 @@
 
 import Foundation
 
-extension FMDatabase {
+extension FMDBDatabase {
     
-    /// Private generic function used for the variadic renditions of the FMDatabaseAdditions methods
+    /// Private generic function used for the variadic renditions of the FMDBDatabaseAdditions methods
     ///
     /// - parameter sql:                The SQL statement to be used.
     /// - parameter values:             The NSArray of the arguments to be bound to the ? placeholders in the SQL.
-    /// - parameter completionHandler:  The closure to be used to call the appropriate FMDatabase method to return the desired value.
+    /// - parameter completionHandler:  The closure to be used to call the appropriate FMDBDatabase method to return the desired value.
     ///
     /// - returns:                      This returns the T value if value is found. Returns nil if column is NULL or upon error.
     
-    private func valueForQuery<T>(sql: String, values: [AnyObject]?, completionHandler:(FMResultSet)->(T!)) -> T! {
+    private func valueForQuery<T>(sql: String, values: [AnyObject]?, completionHandler:(FMDBResultSet)->(T!)) -> T! {
         var result: T!
         
         if let rs = executeQuery(sql, withArgumentsInArray: values) {

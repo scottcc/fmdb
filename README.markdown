@@ -39,22 +39,22 @@ You can use either style in your Cocoa project.  FMDB will figure out which you 
 ## Usage
 There are three main classes in FMDB:
 
-1. `FMDatabase` - Represents a single SQLite database.  Used for executing SQL statements.
-2. `FMResultSet` - Represents the results of executing a query on an `FMDatabase`.
-3. `FMDatabaseQueue` - If you're wanting to perform queries and updates on multiple threads, you'll want to use this class.  It's described in the "Thread Safety" section below.
+1. `FMDBDatabase` - Represents a single SQLite database.  Used for executing SQL statements.
+2. `FMDBResultSet` - Represents the results of executing a query on an `FMDBDatabase`.
+3. `FMDBDatabaseQueue` - If you're wanting to perform queries and updates on multiple threads, you'll want to use this class.  It's described in the "Thread Safety" section below.
 
 ### Database Creation
-An `FMDatabase` is created with a path to a SQLite database file.  This path can be one of these three:
+An `FMDBDatabase` is created with a path to a SQLite database file.  This path can be one of these three:
 
 1. A file system path.  The file does not have to exist on disk.  If it does not exist, it is created for you.
-2. An empty string (`@""`).  An empty database is created at a temporary location.  This database is deleted with the `FMDatabase` connection is closed.
-3. `NULL`.  An in-memory database is created.  This database will be destroyed with the `FMDatabase` connection is closed.
+2. An empty string (`@""`).  An empty database is created at a temporary location.  This database is deleted with the `FMDBDatabase` connection is closed.
+3. `NULL`.  An in-memory database is created.  This database will be destroyed with the `FMDBDatabase` connection is closed.
 
 (For more information on temporary and in-memory databases, read the sqlite documentation on the subject: http://www.sqlite.org/inmemorydb.html)
 
 ```objc
 NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"tmp.db"];
-FMDatabase *db = [FMDatabase databaseWithPath:path];
+FMDBDatabase *db = [FMDBDatabase databaseWithPath:path];
 ```
 
 ### Opening
@@ -79,27 +79,27 @@ Executing updates returns a single value, a `BOOL`.  A return value of `YES` mea
 
 A `SELECT` statement is a query and is executed via one of the `-executeQuery...` methods.
 
-Executing queries returns an `FMResultSet` object if successful, and `nil` upon failure.  You should use the `-lastErrorMessage` and `-lastErrorCode` methods to determine why a query failed.
+Executing queries returns an `FMDBResultSet` object if successful, and `nil` upon failure.  You should use the `-lastErrorMessage` and `-lastErrorCode` methods to determine why a query failed.
 
 In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" from one record to the other.  With FMDB, the easiest way to do that is like this:
 
 ```objc
-FMResultSet *s = [db executeQuery:@"SELECT * FROM myTable"];
+FMDBResultSet *s = [db executeQuery:@"SELECT * FROM myTable"];
 while ([s next]) {
     //retrieve values for each record
 }
 ```
 
-You must always invoke `-[FMResultSet next]` before attempting to access the values returned in a query, even if you're only expecting one:
+You must always invoke `-[FMDBResultSet next]` before attempting to access the values returned in a query, even if you're only expecting one:
 
 ```objc
-FMResultSet *s = [db executeQuery:@"SELECT COUNT(*) FROM myTable"];
+FMDBResultSet *s = [db executeQuery:@"SELECT COUNT(*) FROM myTable"];
 if ([s next]) {
     int totalCount = [s intForColumnIndex:0];
 }
 ```
 
-`FMResultSet` has many methods to retrieve data in an appropriate format:
+`FMDBResultSet` has many methods to retrieve data in an appropriate format:
 
 - `intForColumn:`
 - `longForColumn:`
@@ -115,11 +115,11 @@ if ([s next]) {
 
 Each of these methods also has a `{type}ForColumnIndex:` variant that is used to retrieve the data based on the position of the column in the results, as opposed to the column's name.
 
-Typically, there's no need to `-close` an `FMResultSet` yourself, since that happens when either the result set is deallocated, or the parent database is closed.
+Typically, there's no need to `-close` an `FMDBResultSet` yourself, since that happens when either the result set is deallocated, or the parent database is closed.
 
 ### Closing
 
-When you have finished executing queries and updates on the database, you should `-close` the `FMDatabase` connection so that SQLite will relinquish any resources it has acquired during the course of its operation.
+When you have finished executing queries and updates on the database, you should `-close` the `FMDBDatabase` connection so that SQLite will relinquish any resources it has acquired during the course of its operation.
 
 ```objc
 [db close];
@@ -127,11 +127,11 @@ When you have finished executing queries and updates on the database, you should
 
 ### Transactions
 
-`FMDatabase` can begin and commit a transaction by invoking one of the appropriate methods or executing a begin/end transaction statement.
+`FMDBDatabase` can begin and commit a transaction by invoking one of the appropriate methods or executing a begin/end transaction statement.
 
 ### Multiple Statements and Batch Stuff
 
-You can use `FMDatabase`'s executeStatements:withResultBlock: to do multiple statements in a string:
+You can use `FMDBDatabase`'s executeStatements:withResultBlock: to do multiple statements in a string:
 
 ```objc
 NSString *sql = @"create table bulktest1 (id integer primary key autoincrement, x text);"
@@ -217,30 +217,30 @@ if (!success) {
 
 The key point is that one should not use `NSString` method `stringWithFormat` to manually insert values into the SQL statement, itself. Nor should one Swift string interpolation to insert values into the SQL. Use `?` placeholders for values to be inserted into the database (or used in `WHERE` clauses in `SELECT` statements).
 
-<h2 id="threads">Using FMDatabaseQueue and Thread Safety.</h2>
+<h2 id="threads">Using FMDBDatabaseQueue and Thread Safety.</h2>
 
-Using a single instance of `FMDatabase` from multiple threads at once is a bad idea.  It has always been OK to make a `FMDatabase` object *per thread*.  Just don't share a single instance across threads, and definitely not across multiple threads at the same time.  Bad things will eventually happen and you'll eventually get something to crash, or maybe get an exception, or maybe meteorites will fall out of the sky and hit your Mac Pro.  *This would suck*.
+Using a single instance of `FMDBDatabase` from multiple threads at once is a bad idea.  It has always been OK to make a `FMDBDatabase` object *per thread*.  Just don't share a single instance across threads, and definitely not across multiple threads at the same time.  Bad things will eventually happen and you'll eventually get something to crash, or maybe get an exception, or maybe meteorites will fall out of the sky and hit your Mac Pro.  *This would suck*.
 
-**So don't instantiate a single `FMDatabase` object and use it across multiple threads.**
+**So don't instantiate a single `FMDBDatabase` object and use it across multiple threads.**
 
-Instead, use `FMDatabaseQueue`. Instantiate a single `FMDatabaseQueue` and use it across multiple threads. The `FMDatabaseQueue` object will synchronize and coordinate access across the multiple threads. Here's how to use it:
+Instead, use `FMDBDatabaseQueue`. Instantiate a single `FMDBDatabaseQueue` and use it across multiple threads. The `FMDBDatabaseQueue` object will synchronize and coordinate access across the multiple threads. Here's how to use it:
 
 First, make your queue.
 
 ```objc
-FMDatabaseQueue *queue = [FMDatabaseQueue databaseQueueWithPath:aPath];
+FMDBDatabaseQueue *queue = [FMDBDatabaseQueue databaseQueueWithPath:aPath];
 ```
 
 Then use it like so:
 
 
 ```objc
-[queue inDatabase:^(FMDatabase *db) {
+[queue inDatabase:^(FMDBDatabase *db) {
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
 
-    FMResultSet *rs = [db executeQuery:@"select * from foo"];
+    FMDBResultSet *rs = [db executeQuery:@"select * from foo"];
     while ([rs next]) {
         …
     }
@@ -250,7 +250,7 @@ Then use it like so:
 An easy way to wrap things up in a transaction can be done like this:
 
 ```objc
-[queue inTransaction:^(FMDatabase *db, BOOL *rollback) {
+[queue inTransaction:^(FMDBDatabase *db, BOOL *rollback) {
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
     [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
@@ -286,9 +286,9 @@ queue.inTransaction { db, rollback in
 }
 ```
 
-`FMDatabaseQueue` will run the blocks on a serialized queue (hence the name of the class).  So if you call `FMDatabaseQueue`'s methods from multiple threads at the same time, they will be executed in the order they are received.  This way queries and updates won't step on each other's toes, and every one is happy.
+`FMDBDatabaseQueue` will run the blocks on a serialized queue (hence the name of the class).  So if you call `FMDBDatabaseQueue`'s methods from multiple threads at the same time, they will be executed in the order they are received.  This way queries and updates won't step on each other's toes, and every one is happy.
 
-**Note:** The calls to `FMDatabaseQueue`'s methods are blocking.  So even though you are passing along blocks, they will **not** be run on another thread.
+**Note:** The calls to `FMDBDatabaseQueue`'s methods are blocking.  So even though you are passing along blocks, they will **not** be run on another thread.
 
 ## Making custom sqlite functions, based on blocks.
 
@@ -302,7 +302,7 @@ To do this, you must:
 
 1. Copy the relevant `.m` and `.h` files from the FMDB `src` folder into your project.
 
- You can copy all of them (which is easiest), or only the ones you need. Likely you will need [`FMDatabase`](http://ccgus.github.io/fmdb/html/Classes/FMDatabase.html) and [`FMResultSet`](http://ccgus.github.io/fmdb/html/Classes/FMResultSet.html) at a minimum. [`FMDatabaseAdditions`](http://ccgus.github.io/fmdb/html/Categories/FMDatabase+FMDatabaseAdditions.html) provides some very useful convenience methods, so you will likely want that, too. If you are doing multithreaded access to a database, [`FMDatabaseQueue`](http://ccgus.github.io/fmdb/html/Classes/FMDatabaseQueue.html) is quite useful, too. If you choose to not copy all of the files from the `src` directory, though, you may want to update `FMDB.h` to only reference the files that you included in your project.
+ You can copy all of them (which is easiest), or only the ones you need. Likely you will need [`FMDBDatabase`](http://ccgus.github.io/fmdb/html/Classes/FMDBDatabase.html) and [`FMDBResultSet`](http://ccgus.github.io/fmdb/html/Classes/FMDBResultSet.html) at a minimum. [`FMDBDatabaseAdditions`](http://ccgus.github.io/fmdb/html/Categories/FMDBDatabase+FMDBDatabaseAdditions.html) provides some very useful convenience methods, so you will likely want that, too. If you are doing multithreaded access to a database, [`FMDBDatabaseQueue`](http://ccgus.github.io/fmdb/html/Classes/FMDBDatabaseQueue.html) is quite useful, too. If you choose to not copy all of the files from the `src` directory, though, you may want to update `FMDB.h` to only reference the files that you included in your project.
 
  Note, if you're copying all of the files from the `src` folder into to your project (which is recommended), you may want to drag the individual files into your project, not the folder, itself, because if you drag the folder, you won't be prompted to add the bridging header (see next point).
 
@@ -317,14 +317,14 @@ To do this, you must:
 
 4. Use the variations of `executeQuery` and `executeUpdate` with the `sql` and `values` parameters with `try` pattern, as shown below. These renditions of `executeQuery` and `executeUpdate` both `throw` errors in true Swift 2 fashion.
 
-If you do the above, you can then write Swift code that uses `FMDatabase`. For example, in Swift 3:
+If you do the above, you can then write Swift code that uses `FMDBDatabase`. For example, in Swift 3:
 
 ```swift
 let fileURL = try! FileManager.default
     .url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
     .appendingPathComponent("test.sqlite")
 
-guard let database = FMDatabase(path: fileURL.path) else {
+guard let database = FMDBDatabase(path: fileURL.path) else {
     print("unable to create database")
     return
 }
@@ -359,7 +359,7 @@ let fileURL = try! NSFileManager.defaultManager()
     .URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: false)
     .URLByAppendingPathComponent("test.sqlite")
 
-let database = FMDatabase(path: fileURL.path)
+let database = FMDBDatabase(path: fileURL.path)
 
 if !database.open() {
     print("Unable to open database")

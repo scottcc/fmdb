@@ -1,5 +1,5 @@
 //
-//  FMTokenizers.h
+//  FMDBTokenizers.h
 //  fmdb
 //
 //  Created by Andrew on 4/9/14.
@@ -7,12 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "FMDatabase+FTS3.h"
+#import "FMDBDatabase+FTS3.h"
 
 /**
  This is the base tokenizer implementation, using a CFStringTokenizer to find words.
  */
-@interface FMSimpleTokenizer : NSObject <FMTokenizerDelegate>
+@interface FMDBSimpleTokenizer : NSObject <FMTokenizerDelegate>
 
 /**
  Create the tokenizer with a given locale. The locale will be used to initialize the string tokenizer and to lowercase the parsed word.
@@ -27,7 +27,7 @@
 /**
  This tokenizer extends the simple tokenizer with support for a stop word list.
  */
-@interface FMStopWordTokenizer : NSObject <FMTokenizerDelegate>
+@interface FMDBStopWordTokenizer : NSObject <FMTokenizerDelegate>
 
 @property (atomic, copy) NSSet *words;
 
@@ -38,7 +38,7 @@
 
 /**
  Initialize an instance of the tokenizer using the set of words. The words should be lowercase if you're using the 
- `FMSimpleTokenizer` as the base.
+ `FMDBSimpleTokenizer` as the base.
  */
 - (instancetype)initWithWords:(NSSet *)words baseTokenizer:(id<FMTokenizerDelegate>)tokenizer;
 

@@ -1,5 +1,5 @@
 //
-//  FMDatabasePool.m
+//  FMDBDatabasePool.m
 //  fmdb
 //
 //  Created by August Mueller on 6/22/11.
@@ -12,18 +12,18 @@
 #import <sqlite3.h>
 #endif
 
-#import "FMDatabasePool.h"
-#import "FMDatabase.h"
+#import "FMDBDatabasePool.h"
+#import "FMDBDatabase.h"
 
-@interface FMDatabasePool()
+@interface FMDBDatabasePool()
 
-- (void)pushDatabaseBackInPool:(FMDatabase*)db;
-- (FMDatabase*)db;
+- (void)pushDatabaseBackInPool:(FMDBDatabase*)db;
+- (FMDBDatabase*)db;
 
 @end
 
 
-@implementation FMDatabasePool
+@implementation FMDBDatabasePool
 @synthesize path=_path;
 @synthesize delegate=_delegate;
 @synthesize maximumNumberOfDatabasesToCreate=_maximumNumberOfDatabasesToCreate;
@@ -69,7 +69,7 @@
 }
 
 + (Class)databaseClass {
-    return [FMDatabase class];
+    return [FMDBDatabase class];
 }
 
 - (void)dealloc {
@@ -93,7 +93,7 @@
     dispatch_sync(_lockQueue, aBlock);
 }
 
-- (void)pushDatabaseBackInPool:(FMDatabase*)db {
+- (void)pushDatabaseBackInPool:(FMDBDatabase*)db {
     
     if (!db) { // db can be null if we set an upper bound on the # of databases to create.
         return;
@@ -102,7 +102,7 @@
     [self executeLocked:^() {
         
         if ([self->_databaseInPool containsObject:db]) {
-            [[NSException exceptionWithName:@"Database already in pool" reason:@"The FMDatabase being put back into the pool is already present in the pool" userInfo:nil] raise];
+            [[NSException exceptionWithName:@"Database already in pool" reason:@"The FMDBDatabase being put back into the pool is already present in the pool" userInfo:nil] raise];
         }
         
         [self->_databaseInPool addObject:db];
@@ -111,9 +111,9 @@
     }];
 }
 
-- (FMDatabase*)db {
+- (FMDBDatabase*)db {
     
-    __block FMDatabase *db;
+    __block FMDBDatabase *db;
     
     
     [self executeLocked:^() {
@@ -210,20 +210,20 @@
     }];
 }
 
-- (void)inDatabase:(void (^)(FMDatabase *db))block {
+- (void)inDatabase:(void (^)(FMDBDatabase *db))block {
     
-    FMDatabase *db = [self db];
+    FMDBDatabase *db = [self db];
     
     block(db);
     
     [self pushDatabaseBackInPool:db];
 }
 
-- (void)beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     
     BOOL shouldRollback = NO;
     
-    FMDatabase *db = [self db];
+    FMDBDatabase *db = [self db];
     
     if (useDeferred) {
         [db beginDeferredTransaction];
@@ -245,15 +245,15 @@
     [self pushDatabaseBackInPool:db];
 }
 
-- (void)inDeferredTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)inDeferredTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     [self beginTransaction:YES withBlock:block];
 }
 
-- (void)inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (void)inTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     [self beginTransaction:NO withBlock:block];
 }
 
-- (NSError*)inSavePoint:(void (^)(FMDatabase *db, BOOL *rollback))block {
+- (NSError*)inSavePoint:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
 #if SQLITE_VERSION_NUMBER >= 3007000
     static unsigned long savePointIdx = 0;
     
@@ -261,7 +261,7 @@
     
     BOOL shouldRollback = NO;
     
-    FMDatabase *db = [self db];
+    FMDBDatabase *db = [self db];
     
     NSError *err = 0x00;
     
@@ -284,7 +284,7 @@
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);
-    return [NSError errorWithDomain:@"FMDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
+    return [NSError errorWithDomain:@"FMDBDatabase" code:0 userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
 #endif
 }
 

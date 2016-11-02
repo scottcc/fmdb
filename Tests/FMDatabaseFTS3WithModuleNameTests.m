@@ -7,8 +7,8 @@
 //
 
 #import "FMDBTempDBTests.h"
-#import "FMDatabase+FTS3.h"
-#import "FMTokenizers.h"
+#import "FMDBDatabase+FTS3.h"
+#import "FMDBTokenizers.h"
 
 @interface FMDatabaseFTS3WithModuleNameTests : FMDBTempDBTests
 
@@ -18,7 +18,7 @@ static id<FMTokenizerDelegate> g_testTok = nil;
 
 @implementation FMDatabaseFTS3WithModuleNameTests
 
-+ (void)populateDatabase:(FMDatabase *)db
++ (void)populateDatabase:(FMDBDatabase *)db
 {
     [db executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
     
@@ -26,8 +26,8 @@ static id<FMTokenizerDelegate> g_testTok = nil;
     [db executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
     
     // Create a tokenizer instance that will not be de-allocated when the method finishes.
-    g_testTok = [[FMSimpleTokenizer alloc] initWithLocale:NULL];
-    [FMDatabase registerTokenizer:g_testTok];
+    g_testTok = [[FMDBSimpleTokenizer alloc] initWithLocale:NULL];
+    [FMDBDatabase registerTokenizer:g_testTok];
 }
 
 - (void)setUp
@@ -44,7 +44,7 @@ static id<FMTokenizerDelegate> g_testTok = nil;
 
 - (void)testOffsets
 {
-    FMResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
+    FMDBResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
     
     if ([results next]) {
         FMTextOffsets *offsets = [results offsetsForColumnIndex:0];
@@ -70,13 +70,13 @@ static id<FMTokenizerDelegate> g_testTok = nil;
     BOOL ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE simple_fts USING fts3(tokenize=TestModuleName)"];
     XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db lastErrorMessage]);
     
-    // The FMSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
+    // The FMDBSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
     NSString *text = @"I like the band Queensrÿche. They are really great.";
     
     ok = [self.db executeUpdate:@"INSERT INTO simple_fts VALUES(?)", text];
     XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db lastErrorMessage]);
     
-    FMResultSet *results = [self.db executeQuery:@"SELECT * FROM simple_fts WHERE simple_fts MATCH ?", @"Queensrÿche"];
+    FMDBResultSet *results = [self.db executeQuery:@"SELECT * FROM simple_fts WHERE simple_fts MATCH ?", @"Queensrÿche"];
     XCTAssertTrue([results next], @"Failed to find result");
 }
 

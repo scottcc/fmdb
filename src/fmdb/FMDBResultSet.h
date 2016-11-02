@@ -12,18 +12,18 @@
 #endif
 #endif
 
-@class FMDatabase;
+@class FMDBDatabase;
 @class FMStatement;
 
-/** Represents the results of executing a query on an `<FMDatabase>`.
+/** Represents the results of executing a query on an `<FMDBDatabase>`.
  
  ### See also
  
- - `<FMDatabase>`
+ - `<FMDBDatabase>`
  */
 
-@interface FMResultSet : NSObject {
-    FMDatabase          *_parentDB;
+@interface FMDBResultSet : NSObject {
+    FMDBDatabase          *_parentDB;
     FMStatement         *_statement;
     
     NSString            *_query;
@@ -54,18 +54,18 @@
  
  @param statement A `<FMStatement>` to be performed
  
- @param aDB A `<FMDatabase>` to be used
+ @param aDB A `<FMDBDatabase>` to be used
  
- @return A `FMResultSet` on success; `nil` on failure
+ @return A `FMDBResultSet` on success; `nil` on failure
  */
 
-+ (instancetype)resultSetWithStatement:(FMStatement *)statement usingParentDatabase:(FMDatabase*)aDB;
++ (instancetype)resultSetWithStatement:(FMStatement *)statement usingParentDatabase:(FMDBDatabase*)aDB;
 
 /** Close result set */
 
 - (void)close;
 
-- (void)setParentDB:(FMDatabase *)newDb;
+- (void)setParentDB:(FMDBDatabase *)newDb;
 
 ///---------------------------------------
 /// @name Iterating through the result set

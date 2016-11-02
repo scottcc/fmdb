@@ -1,12 +1,12 @@
 //
-//  FMDatabase+FTS3.m
+//  FMDBDatabase+FTS3.m
 //  fmdb
 //
 //  Created by Andrew on 3/27/14.
 //  Copyright (c) 2014 Andrew Goodale. All rights reserved.
 //
 
-#import "FMDatabase+FTS3.h"
+#import "FMDBDatabase+FTS3.h"
 #import "fts3_tokenizer.h"
 #include "sqlite3.h"
 NSString *const kFTSCommandOptimize = @"optimize";
@@ -205,7 +205,7 @@ static const sqlite3_tokenizer_module FMDBTokenizerModule =
 
 #pragma mark
 
-@implementation FMDatabase (FTS3)
+@implementation FMDBDatabase (FTS3)
 
 + (void)registerTokenizer:(id<FMTokenizerDelegate>)tokenizer withKey:(NSString *)key
 {
@@ -232,7 +232,7 @@ static const sqlite3_tokenizer_module FMDBTokenizerModule =
     const sqlite3_tokenizer_module *module = &FMDBTokenizerModule;
     NSData *tokenizerData = [NSData dataWithBytes:&module  length:sizeof(module)];
     
-    FMResultSet *results = [self executeQuery:@"SELECT fts3_tokenizer(?, ?)", name, tokenizerData];
+    FMDBResultSet *results = [self executeQuery:@"SELECT fts3_tokenizer(?, ?)", name, tokenizerData];
     
     if ([results next]) {
         [results close];
@@ -287,7 +287,7 @@ static const sqlite3_tokenizer_module FMDBTokenizerModule =
 
 @end
 
-@implementation FMResultSet (FTS3)
+@implementation FMDBResultSet (FTS3)
 
 - (FMTextOffsets *)offsetsForColumnIndex:(int)columnIdx
 {

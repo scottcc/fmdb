@@ -1,5 +1,5 @@
 //
-//  FMDatabasePool.h
+//  FMDBDatabasePool.h
 //  fmdb
 //
 //  Created by August Mueller on 6/22/11.
@@ -8,18 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
-@class FMDatabase;
+@class FMDBDatabase;
 
-/** Pool of `<FMDatabase>` objects.
+/** Pool of `<FMDBDatabase>` objects.
 
  ### See also
  
- - `<FMDatabaseQueue>`
- - `<FMDatabase>`
+ - `<FMDBDatabaseQueue>`
+ - `<FMDBDatabase>`
 
- @warning Before using `FMDatabasePool`, please consider using `<FMDatabaseQueue>` instead.
+ @warning Before using `FMDBDatabasePool`, please consider using `<FMDBDatabaseQueue>` instead.
 
- If you really really really know what you're doing and `FMDatabasePool` is what
+ If you really really really know what you're doing and `FMDBDatabasePool` is what
  you really really need (ie, you're using a read only database), OK you can use
  it.  But just be careful not to deadlock!
 
@@ -28,7 +28,7 @@
  in the main.m file.
  */
 
-@interface FMDatabasePool : NSObject {
+@interface FMDBDatabasePool : NSObject {
     NSString            *_path;
     
     dispatch_queue_t    _lockQueue;
@@ -72,7 +72,7 @@
 
  @param aPath The file path of the database.
 
- @return The `FMDatabasePool` object. `nil` on error.
+ @return The `FMDBDatabasePool` object. `nil` on error.
  */
 
 + (instancetype)databasePoolWithPath:(NSString*)aPath;
@@ -82,7 +82,7 @@
  @param aPath The file path of the database.
  @param openFlags Flags passed to the openWithFlags method of the database
 
- @return The `FMDatabasePool` object. `nil` on error.
+ @return The `FMDBDatabasePool` object. `nil` on error.
  */
 
 + (instancetype)databasePoolWithPath:(NSString*)aPath flags:(int)openFlags;
@@ -91,7 +91,7 @@
 
  @param aPath The file path of the database.
 
- @return The `FMDatabasePool` object. `nil` on error.
+ @return The `FMDBDatabasePool` object. `nil` on error.
  */
 
 - (instancetype)initWithPath:(NSString*)aPath;
@@ -101,7 +101,7 @@
  @param aPath The file path of the database.
  @param openFlags Flags passed to the openWithFlags method of the database
 
- @return The `FMDatabasePool` object. `nil` on error.
+ @return The `FMDBDatabasePool` object. `nil` on error.
  */
 
 - (instancetype)initWithPath:(NSString*)aPath flags:(int)openFlags;
@@ -112,16 +112,16 @@
  @param openFlags Flags passed to the openWithFlags method of the database
  @param vfsName The name of a custom virtual file system
 
- @return The `FMDatabasePool` object. `nil` on error.
+ @return The `FMDBDatabasePool` object. `nil` on error.
  */
 
 - (instancetype)initWithPath:(NSString*)aPath flags:(int)openFlags vfs:(NSString *)vfsName;
 
-/** Returns the Class of 'FMDatabase' subclass, that will be used to instantiate database object.
+/** Returns the Class of 'FMDBDatabase' subclass, that will be used to instantiate database object.
 
- Subclasses can override this method to return specified Class of 'FMDatabase' subclass.
+ Subclasses can override this method to return specified Class of 'FMDBDatabase' subclass.
 
- @return The Class of 'FMDatabase' subclass, that will be used to instantiate database object.
+ @return The Class of 'FMDBDatabase' subclass, that will be used to instantiate database object.
  */
 
 + (Class)databaseClass;
@@ -161,65 +161,65 @@
 
 /** Synchronously perform database operations in pool.
 
- @param block The code to be run on the `FMDatabasePool` pool.
+ @param block The code to be run on the `FMDBDatabasePool` pool.
  */
 
-- (void)inDatabase:(void (^)(FMDatabase *db))block;
+- (void)inDatabase:(void (^)(FMDBDatabase *db))block;
 
 /** Synchronously perform database operations in pool using transaction.
 
- @param block The code to be run on the `FMDatabasePool` pool.
+ @param block The code to be run on the `FMDBDatabasePool` pool.
  */
 
-- (void)inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block;
+- (void)inTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block;
 
 /** Synchronously perform database operations in pool using deferred transaction.
 
- @param block The code to be run on the `FMDatabasePool` pool.
+ @param block The code to be run on the `FMDBDatabasePool` pool.
  */
 
-- (void)inDeferredTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block;
+- (void)inDeferredTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block;
 
 /** Synchronously perform database operations in pool using save point.
 
- @param block The code to be run on the `FMDatabasePool` pool.
+ @param block The code to be run on the `FMDBDatabasePool` pool.
  
  @return `NSError` object if error; `nil` if successful.
 
- @warning You can not nest these, since calling it will pull another database out of the pool and you'll get a deadlock. If you need to nest, use `<[FMDatabase startSavePointWithName:error:]>` instead.
+ @warning You can not nest these, since calling it will pull another database out of the pool and you'll get a deadlock. If you need to nest, use `<[FMDBDatabase startSavePointWithName:error:]>` instead.
 */
 
-- (NSError*)inSavePoint:(void (^)(FMDatabase *db, BOOL *rollback))block;
+- (NSError*)inSavePoint:(void (^)(FMDBDatabase *db, BOOL *rollback))block;
 
 @end
 
 
-/** FMDatabasePool delegate category
+/** FMDBDatabasePool delegate category
  
- This is a category that defines the protocol for the FMDatabasePool delegate
+ This is a category that defines the protocol for the FMDBDatabasePool delegate
  */
 
 @interface NSObject (FMDatabasePoolDelegate)
 
 /** Asks the delegate whether database should be added to the pool. 
  
- @param pool     The `FMDatabasePool` object.
- @param database The `FMDatabase` object.
+ @param pool     The `FMDBDatabasePool` object.
+ @param database The `FMDBDatabase` object.
  
  @return `YES` if it should add database to pool; `NO` if not.
  
  */
 
-- (BOOL)databasePool:(FMDatabasePool*)pool shouldAddDatabaseToPool:(FMDatabase*)database;
+- (BOOL)databasePool:(FMDBDatabasePool*)pool shouldAddDatabaseToPool:(FMDBDatabase*)database;
 
 /** Tells the delegate that database was added to the pool.
  
- @param pool     The `FMDatabasePool` object.
- @param database The `FMDatabase` object.
+ @param pool     The `FMDBDatabasePool` object.
+ @param database The `FMDBDatabase` object.
 
  */
 
-- (void)databasePool:(FMDatabasePool*)pool didAddDatabase:(FMDatabase*)database;
+- (void)databasePool:(FMDBDatabasePool*)pool didAddDatabase:(FMDBDatabase*)database;
 
 @end
 

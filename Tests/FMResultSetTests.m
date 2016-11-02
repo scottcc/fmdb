@@ -7,8 +7,8 @@
 //
 
 #import "FMDBTempDBTests.h"
-#import "FMDatabase.h"
-#import "FMResultSet.h"
+#import "FMDBDatabase.h"
+#import "FMDBResultSet.h"
 
 #if FMDB_SQLITE_STANDALONE
 #import <sqlite3/sqlite3.h>
@@ -22,7 +22,7 @@
 
 @implementation FMResultSetTests
 
-+ (void)populateDatabase:(FMDatabase *)db
++ (void)populateDatabase:(FMDBDatabase *)db
 {
     [db executeUpdate:@"create table test (a text, b text, c integer, d double, e double)"];
     
@@ -45,7 +45,7 @@
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
-    FMResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
+    FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
     XCTAssertNotNil(resultSet);
     NSError *error;
     XCTAssertTrue([resultSet nextWithError:&error]);
@@ -63,10 +63,10 @@
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
-    FMResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
+    FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
     XCTAssertNotNil(resultSet);
     
-    FMDatabase *newDB = [FMDatabase databaseWithPath:self.databasePath];
+    FMDBDatabase *newDB = [FMDBDatabase databaseWithPath:self.databasePath];
     [newDB open];
     
     [newDB beginTransaction];
@@ -85,7 +85,7 @@
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
     [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
-    FMResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=9"];
+    FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=9"];
     XCTAssertNotNil(resultSet);
     XCTAssertFalse([resultSet next]);
     NSError *error;

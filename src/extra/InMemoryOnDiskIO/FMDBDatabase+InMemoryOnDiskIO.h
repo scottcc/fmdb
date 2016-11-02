@@ -1,5 +1,5 @@
 //
-//  FMDatabase+InMemoryOnDiskIO.h
+//  FMDBDatabase+InMemoryOnDiskIO.h
 //  FMDB
 //
 //  Created by Peter Carr on 6/12/12.
@@ -14,9 +14,9 @@
 //
 //  http://www.sqlite.org/backup.html
 
-#import "FMDatabase.h"
+#import "FMDBDatabase.h"
 
-@interface FMDatabase (InMemoryOnDiskIO)
+@interface FMDBDatabase (InMemoryOnDiskIO)
 
 // Loads an on-disk representation into memory.
 - (BOOL)readFromFile:(NSString*)filePath;

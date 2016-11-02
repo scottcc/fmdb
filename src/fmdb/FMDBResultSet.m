@@ -1,5 +1,5 @@
-#import "FMResultSet.h"
-#import "FMDatabase.h"
+#import "FMDBResultSet.h"
+#import "FMDBDatabase.h"
 #import "unistd.h"
 
 #if FMDB_SQLITE_STANDALONE
@@ -8,18 +8,18 @@
 #import <sqlite3.h>
 #endif
 
-@interface FMDatabase ()
-- (void)resultSetDidClose:(FMResultSet *)resultSet;
+@interface FMDBDatabase ()
+- (void)resultSetDidClose:(FMDBResultSet *)resultSet;
 @end
 
 
-@implementation FMResultSet
+@implementation FMDBResultSet
 @synthesize query=_query;
 @synthesize statement=_statement;
 
-+ (instancetype)resultSetWithStatement:(FMStatement *)statement usingParentDatabase:(FMDatabase*)aDB {
++ (instancetype)resultSetWithStatement:(FMStatement *)statement usingParentDatabase:(FMDBDatabase*)aDB {
     
-    FMResultSet *rs = [[FMResultSet alloc] init];
+    FMDBResultSet *rs = [[FMDBResultSet alloc] init];
     
     [rs setStatement:statement];
     [rs setParentDB:aDB];
@@ -187,7 +187,7 @@
                 // If 'next' or 'nextWithError' is called after the result set is closed,
                 // we need to return the appropriate error.
                 NSDictionary* errorMessage = [NSDictionary dictionaryWithObject:@"parentDB does not exist" forKey:NSLocalizedDescriptionKey];
-                *outErr = [NSError errorWithDomain:@"FMDatabase" code:SQLITE_MISUSE userInfo:errorMessage];
+                *outErr = [NSError errorWithDomain:@"FMDBDatabase" code:SQLITE_MISUSE userInfo:errorMessage];
             }
             
         }
@@ -406,7 +406,7 @@
     return [NSString stringWithUTF8String: sqlite3_column_name([_statement statement], columnIdx)];
 }
 
-- (void)setParentDB:(FMDatabase *)newDb {
+- (void)setParentDB:(FMDBDatabase *)newDb {
     _parentDB = newDb;
 }
 

@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "FMDatabaseAdditions.h"
+#import "FMDBDatabaseAdditions.h"
 
 #if FMDB_SQLITE_STANDALONE
 #import <sqlite3/sqlite3.h>
@@ -37,7 +37,7 @@
 {
     [self.db executeUpdate:@"create table '234 fds' (foo text)"];
     XCTAssertFalse([self.db hadError], @"table creation should have succeeded");
-    FMResultSet *rs = [self.db getTableSchema:@"234 fds"];
+    FMDBResultSet *rs = [self.db getTableSchema:@"234 fds"];
     XCTAssertTrue([rs next], @"Schema should have succeded");
     [rs close];
     XCTAssertFalse([self.db hadError], @"There shouldn't be any errors");
@@ -84,7 +84,7 @@
     XCTAssertTrue([self.db tableExists:@"t4"]);
     XCTAssertFalse([self.db tableExists:@"thisdoesntexist"]);
     
-    FMResultSet *rs = [self.db getSchema];
+    FMDBResultSet *rs = [self.db getSchema];
     while ([rs next]) {
         XCTAssertEqualObjects([rs stringForColumn:@"type"], @"table");
     }

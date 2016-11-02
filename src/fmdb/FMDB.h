@@ -3,8 +3,8 @@
 FOUNDATION_EXPORT double FMDBVersionNumber;
 FOUNDATION_EXPORT const unsigned char FMDBVersionString[];
 
-#import "FMDatabase.h"
-#import "FMResultSet.h"
-#import "FMDatabaseAdditions.h"
-#import "FMDatabaseQueue.h"
-#import "FMDatabasePool.h"
+#import "FMDBDatabase.h"
+#import "FMDBResultSet.h"
+#import "FMDBDatabaseAdditions.h"
+#import "FMDBDatabaseQueue.h"
+#import "FMDBDatabasePool.h"
