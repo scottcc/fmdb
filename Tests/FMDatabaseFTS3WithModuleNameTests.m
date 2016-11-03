@@ -20,10 +20,10 @@ static id<FMTokenizerDelegate> g_testTok = nil;
 
 + (void)populateDatabase:(FMDBDatabase *)db
 {
-    [db executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
+    [db fmdb_executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
     
-    [db executeUpdate:@"INSERT INTO mail VALUES('hello world', 'This message is a hello world message.')"];
-    [db executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
+    [db fmdb_executeUpdate:@"INSERT INTO mail VALUES('hello world', 'This message is a hello world message.')"];
+    [db fmdb_executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
     
     // Create a tokenizer instance that will not be de-allocated when the method finishes.
     g_testTok = [[FMDBSimpleTokenizer alloc] initWithLocale:NULL];
@@ -46,7 +46,7 @@ static id<FMTokenizerDelegate> g_testTok = nil;
 {
     FMDBResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
     
-    if ([results next]) {
+    if ([results fmdb_next]) {
         FMTextOffsets *offsets = [results offsetsForColumnIndex:0];
         
         [offsets enumerateWithBlock:^(NSInteger columnNumber, NSInteger termNumber, NSRange matchRange) {
@@ -67,17 +67,17 @@ static id<FMTokenizerDelegate> g_testTok = nil;
 {
     [self.db installTokenizerModuleWithName:@"TestModuleName"];
     
-    BOOL ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE simple_fts USING fts3(tokenize=TestModuleName)"];
-    XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db lastErrorMessage]);
+    BOOL ok = [self.db fmdb_executeUpdate:@"CREATE VIRTUAL TABLE simple_fts USING fts3(tokenize=TestModuleName)"];
+    XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db fmdb_lastErrorMessage]);
     
     // The FMDBSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
     NSString *text = @"I like the band Queensrÿche. They are really great.";
     
-    ok = [self.db executeUpdate:@"INSERT INTO simple_fts VALUES(?)", text];
-    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db lastErrorMessage]);
+    ok = [self.db fmdb_executeUpdate:@"INSERT INTO simple_fts VALUES(?)", text];
+    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db fmdb_lastErrorMessage]);
     
     FMDBResultSet *results = [self.db executeQuery:@"SELECT * FROM simple_fts WHERE simple_fts MATCH ?", @"Queensrÿche"];
-    XCTAssertTrue([results next], @"Failed to find result");
+    XCTAssertTrue([results fmdb_next], @"Failed to find result");
 }
 
 @end

@@ -11,7 +11,7 @@
 @interface FMDBDatabase ()
 
 - (FMDBResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
-- (BOOL)executeUpdate:(NSString*)sql error:(NSError**)outErr withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql error:(NSError**)outErr withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args;
 
 @end
 
@@ -377,7 +377,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     
     if (rc != SQLITE_OK) {
         NSLog(@"error on rekey: %d", rc);
-        NSLog(@"%@", [self lastErrorMessage]);
+        NSLog(@"%@", [self fmdb_lastErrorMessage]);
     }
     
     return (rc == SQLITE_OK);
@@ -487,7 +487,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 
 #pragma mark Error routines
 
-- (NSString*)lastErrorMessage {
+- (NSString*)fmdb_lastErrorMessage {
     return [NSString stringWithUTF8String:sqlite3_errmsg(_db)];
 }
 
@@ -512,7 +512,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 }
 
 - (NSError*)lastError {
-    return [self errorWithMessage:[self lastErrorMessage]];
+    return [self errorWithMessage:[self fmdb_lastErrorMessage]];
 }
 
 #pragma mark Update information routines
@@ -687,8 +687,8 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
                 case 'l':
                     i++;
                     if (i < length) {
-                        unichar next = [sql characterAtIndex:i];
-                        if (next == 'l') {
+                        unichar fmdb_next = [sql characterAtIndex:i];
+                        if (fmdb_next == 'l') {
                             i++;
                             if (i < length && [sql characterAtIndex:i] == 'd') {
                                 //%lld
@@ -702,11 +702,11 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
                                 i--;
                             }
                         }
-                        else if (next == 'd') {
+                        else if (fmdb_next == 'd') {
                             //%ld
                             arg = [NSNumber numberWithLong:va_arg(args, long)];
                         }
-                        else if (next == 'u') {
+                        else if (fmdb_next == 'u') {
                             //%lu
                             arg = [NSNumber numberWithUnsignedLong:va_arg(args, unsigned long)];
                         }
@@ -782,13 +782,13 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
         
         if (SQLITE_OK != rc) {
             if (_logsErrors) {
-                NSLog(@"DB Error: %d \"%@\"", [self lastErrorCode], [self lastErrorMessage]);
+                NSLog(@"DB Error: %d \"%@\"", [self lastErrorCode], [self fmdb_lastErrorMessage]);
                 NSLog(@"DB Query: %@", sql);
                 NSLog(@"DB Path: %@", _databasePath);
             }
             
             if (_crashOnErrors) {
-                NSAssert(false, @"DB Error: %d \"%@\"", [self lastErrorCode], [self lastErrorMessage]);
+                NSAssert(false, @"DB Error: %d \"%@\"", [self lastErrorCode], [self fmdb_lastErrorMessage]);
                 abort();
             }
             
@@ -935,7 +935,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 
 #pragma mark Execute updates
 
-- (BOOL)executeUpdate:(NSString*)sql error:(NSError**)outErr withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
+- (BOOL)fmdb_executeUpdate:(NSString*)sql error:(NSError**)outErr withArgumentsInArray:(NSArray*)arrayArgs orDictionary:(NSDictionary *)dictionaryArgs orVAList:(va_list)args {
     
     if (![self databaseExists]) {
         return NO;
@@ -953,7 +953,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     FMStatement *cachedStmt  = 0x00;
     
     if (_traceExecution && sql) {
-        NSLog(@"%@ executeUpdate: %@", self, sql);
+        NSLog(@"%@ fmdb_executeUpdate: %@", self, sql);
     }
     
     if (_shouldCacheStatements) {
@@ -967,13 +967,13 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
         
         if (SQLITE_OK != rc) {
             if (_logsErrors) {
-                NSLog(@"DB Error: %d \"%@\"", [self lastErrorCode], [self lastErrorMessage]);
+                NSLog(@"DB Error: %d \"%@\"", [self lastErrorCode], [self fmdb_lastErrorMessage]);
                 NSLog(@"DB Query: %@", sql);
                 NSLog(@"DB Path: %@", _databasePath);
             }
             
             if (_crashOnErrors) {
-                NSAssert(false, @"DB Error: %d \"%@\"", [self lastErrorCode], [self lastErrorMessage]);
+                NSAssert(false, @"DB Error: %d \"%@\"", [self lastErrorCode], [self fmdb_lastErrorMessage]);
                 abort();
             }
             
@@ -1059,7 +1059,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     
     
     if (idx != queryCount) {
-        NSString *message = [NSString stringWithFormat:@"Error: the bind count (%d) is not correct for the # of variables in the query (%d) (%@) (executeUpdate)", idx, queryCount, sql];
+        NSString *message = [NSString stringWithFormat:@"Error: the bind count (%d) is not correct for the # of variables in the query (%d) (%@) (fmdb_executeUpdate)", idx, queryCount, sql];
         if (_logsErrors) {
             NSLog(@"%@", message);
         }
@@ -1088,7 +1088,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
         }
     }
     else if (rc == SQLITE_ROW) {
-        NSString *message = [NSString stringWithFormat:@"A executeUpdate is being called with a query string '%@'", sql];
+        NSString *message = [NSString stringWithFormat:@"A fmdb_executeUpdate is being called with a query string '%@'", sql];
         if (_logsErrors) {
             NSLog(@"%@", message);
             NSLog(@"DB Query: %@", sql);
@@ -1159,30 +1159,30 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
 }
 
 
-- (BOOL)executeUpdate:(NSString*)sql, ... {
+- (BOOL)fmdb_executeUpdate:(NSString*)sql, ... {
     va_list args;
     va_start(args, sql);
     
-    BOOL result = [self executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:nil orVAList:args];
+    BOOL result = [self fmdb_executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:nil orVAList:args];
     
     va_end(args);
     return result;
 }
 
-- (BOOL)executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments {
-    return [self executeUpdate:sql error:nil withArgumentsInArray:arguments orDictionary:nil orVAList:nil];
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments {
+    return [self fmdb_executeUpdate:sql error:nil withArgumentsInArray:arguments orDictionary:nil orVAList:nil];
 }
 
-- (BOOL)executeUpdate:(NSString*)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error {
-    return [self executeUpdate:sql error:error withArgumentsInArray:values orDictionary:nil orVAList:nil];
+- (BOOL)fmdb_executeUpdate:(NSString*)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error {
+    return [self fmdb_executeUpdate:sql error:error withArgumentsInArray:values orDictionary:nil orVAList:nil];
 }
 
-- (BOOL)executeUpdate:(NSString*)sql withParameterDictionary:(NSDictionary *)arguments {
-    return [self executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:arguments orVAList:nil];
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withParameterDictionary:(NSDictionary *)arguments {
+    return [self fmdb_executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:arguments orVAList:nil];
 }
 
-- (BOOL)executeUpdate:(NSString*)sql withVAList:(va_list)args {
-    return [self executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:nil orVAList:args];
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withVAList:(va_list)args {
+    return [self fmdb_executeUpdate:sql error:nil withArgumentsInArray:nil orDictionary:nil orVAList:args];
 }
 
 - (BOOL)executeUpdateWithFormat:(NSString*)format, ... {
@@ -1196,7 +1196,7 @@ static int FMDBDatabaseBusyHandler(void *f, int count) {
     
     va_end(args);
     
-    return [self executeUpdate:sql withArgumentsInArray:arguments];
+    return [self fmdb_executeUpdate:sql withArgumentsInArray:arguments];
 }
 
 
@@ -1239,12 +1239,12 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
     return (rc == SQLITE_OK);
 }
 
-- (BOOL)executeUpdate:(NSString*)sql withErrorAndBindings:(NSError**)outErr, ... {
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withErrorAndBindings:(NSError**)outErr, ... {
     
     va_list args;
     va_start(args, outErr);
     
-    BOOL result = [self executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:args];
+    BOOL result = [self fmdb_executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:args];
     
     va_end(args);
     return result;
@@ -1257,7 +1257,7 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
     va_list args;
     va_start(args, outErr);
     
-    BOOL result = [self executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:args];
+    BOOL result = [self fmdb_executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:args];
     
     va_end(args);
     return result;
@@ -1268,7 +1268,7 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
 #pragma mark Transactions
 
 - (BOOL)rollback {
-    BOOL b = [self executeUpdate:@"rollback transaction"];
+    BOOL b = [self fmdb_executeUpdate:@"rollback transaction"];
     
     if (b) {
         _inTransaction = NO;
@@ -1278,7 +1278,7 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
 }
 
 - (BOOL)commit {
-    BOOL b =  [self executeUpdate:@"commit transaction"];
+    BOOL b =  [self fmdb_executeUpdate:@"commit transaction"];
     
     if (b) {
         _inTransaction = NO;
@@ -1289,7 +1289,7 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
 
 - (BOOL)beginDeferredTransaction {
     
-    BOOL b = [self executeUpdate:@"begin deferred transaction"];
+    BOOL b = [self fmdb_executeUpdate:@"begin deferred transaction"];
     if (b) {
         _inTransaction = YES;
     }
@@ -1297,9 +1297,9 @@ int FMDBExecuteBulkSQLCallback(void *theBlockAsVoid, int columns, char **values,
     return b;
 }
 
-- (BOOL)beginTransaction {
+- (BOOL)fmdb_beginTransaction {
     
-    BOOL b = [self executeUpdate:@"begin exclusive transaction"];
+    BOOL b = [self fmdb_executeUpdate:@"begin exclusive transaction"];
     if (b) {
         _inTransaction = YES;
     }
@@ -1330,7 +1330,7 @@ static NSString *FMDBEscapeSavePointName(NSString *savepointName) {
     
     NSString *sql = [NSString stringWithFormat:@"savepoint '%@';", FMDBEscapeSavePointName(name)];
     
-    return [self executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
+    return [self fmdb_executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);
@@ -1344,7 +1344,7 @@ static NSString *FMDBEscapeSavePointName(NSString *savepointName) {
     
     NSString *sql = [NSString stringWithFormat:@"release savepoint '%@';", FMDBEscapeSavePointName(name)];
 
-    return [self executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
+    return [self fmdb_executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);
@@ -1358,7 +1358,7 @@ static NSString *FMDBEscapeSavePointName(NSString *savepointName) {
     
     NSString *sql = [NSString stringWithFormat:@"rollback transaction to savepoint '%@';", FMDBEscapeSavePointName(name)];
 
-    return [self executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
+    return [self fmdb_executeUpdate:sql error:outErr withArgumentsInArray:nil orDictionary:nil orVAList:nil];
 #else
     NSString *errorMessage = NSLocalizedString(@"Save point functions require SQLite 3.7", nil);
     if (self.logsErrors) NSLog(@"%@", errorMessage);

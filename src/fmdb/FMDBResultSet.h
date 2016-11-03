@@ -71,20 +71,20 @@
 /// @name Iterating through the result set
 ///---------------------------------------
 
-/** Retrieve next row for result set.
+/** Retrieve fmdb_next row for result set.
  
- You must always invoke `next` or `nextWithError` before attempting to access the values returned in a query, even if you're only expecting one.
+ You must always invoke `fmdb_next` or `nextWithError` before attempting to access the values returned in a query, even if you're only expecting one.
 
  @return `YES` if row successfully retrieved; `NO` if end of result set reached
  
  @see hasAnotherRow
  */
 
-- (BOOL)next;
+- (BOOL)fmdb_next;
 
-/** Retrieve next row for result set.
+/** Retrieve fmdb_next row for result set.
  
-  You must always invoke `next` or `nextWithError` before attempting to access the values returned in a query, even if you're only expecting one.
+  You must always invoke `fmdb_next` or `nextWithError` before attempting to access the values returned in a query, even if you're only expecting one.
  
  @param outErr A 'NSError' object to receive any error object (if any).
  
@@ -95,13 +95,13 @@
 
 - (BOOL)nextWithError:(NSError **)outErr;
 
-/** Did the last call to `<next>` succeed in retrieving another row?
+/** Did the last call to `<fmdb_next>` succeed in retrieving another row?
 
- @return `YES` if the last call to `<next>` succeeded in retrieving another record; `NO` if not.
+ @return `YES` if the last call to `<fmdb_next>` succeeded in retrieving another record; `NO` if not.
  
- @see next
+ @see fmdb_next
  
- @warning The `hasAnotherRow` method must follow a call to `<next>`. If the previous database interaction was something other than a call to `next`, then this method may return `NO`, whether there is another row of data or not.
+ @warning The `hasAnotherRow` method must follow a call to `<fmdb_next>`. If the previous database interaction was something other than a call to `fmdb_next`, then this method may return `NO`, whether there is another row of data or not.
  */
 
 - (BOOL)hasAnotherRow;
@@ -151,7 +151,7 @@
  @return `int` value of the result set's column.
  */
 
-- (int)intForColumnIndex:(int)columnIdx;
+- (int)fmdb_intForColumnIndex:(int)columnIdx;
 
 /** Result set `long` value for column.
 
@@ -243,7 +243,7 @@
  
  */
 
-- (double)doubleForColumnIndex:(int)columnIdx;
+- (double)fmdb_doubleForColumnIndex:(int)columnIdx;
 
 /** Result set `NSString` value for column.
 
@@ -262,7 +262,7 @@
  @return `NSString` value of the result set's column.
  */
 
-- (NSString*)stringForColumnIndex:(int)columnIdx;
+- (NSString*)fmdb_stringForColumnIndex:(int)columnIdx;
 
 /** Result set `NSDate` value for column.
 
@@ -392,7 +392,7 @@
 
  @return `NSData` value of the result set's column.
 
- @warning If you are going to use this data after you iterate over the next row, or after you close the
+ @warning If you are going to use this data after you iterate over the fmdb_next row, or after you close the
 result set, make sure to make a copy of the data first (or just use `<dataForColumn:>`/`<dataForColumnIndex:>`)
 If you don't, you're going to be in a world of hurt when you try and use the data.
  
@@ -406,7 +406,7 @@ If you don't, you're going to be in a world of hurt when you try and use the dat
 
  @return `NSData` value of the result set's column.
 
- @warning If you are going to use this data after you iterate over the next row, or after you close the
+ @warning If you are going to use this data after you iterate over the fmdb_next row, or after you close the
  result set, make sure to make a copy of the data first (or just use `<dataForColumn:>`/`<dataForColumnIndex:>`)
  If you don't, you're going to be in a world of hurt when you try and use the data.
 

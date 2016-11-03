@@ -30,10 +30,10 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
 
 + (void)populateDatabase:(FMDBDatabase *)db
 {
-    [db executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
+    [db fmdb_executeUpdate:@"CREATE VIRTUAL TABLE mail USING fts3(subject, body)"];
     
-    [db executeUpdate:@"INSERT INTO mail VALUES('hello world', 'This message is a hello world message.')"];
-    [db executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
+    [db fmdb_executeUpdate:@"INSERT INTO mail VALUES('hello world', 'This message is a hello world message.')"];
+    [db fmdb_executeUpdate:@"INSERT INTO mail VALUES('urgent: serious', 'This mail is seen as a more serious mail')"];
 
     // Create a tokenizer instance that will not be de-allocated when the method finishes.
     g_simpleTok = [[FMDBSimpleTokenizer alloc] initWithLocale:NULL];
@@ -59,7 +59,7 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
 {
     FMDBResultSet *results = [self.db executeQuery:@"SELECT offsets(mail) FROM mail WHERE mail MATCH 'world'"];
     
-    if ([results next]) {
+    if ([results fmdb_next]) {
         FMTextOffsets *offsets = [results offsetsForColumnIndex:0];
         
         [offsets enumerateWithBlock:^(NSInteger columnNumber, NSInteger termNumber, NSRange matchRange) {
@@ -80,31 +80,31 @@ static id<FMTokenizerDelegate> g_depluralizeTok = nil;
 {
     [self.db installTokenizerModule];
     
-    BOOL ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE simple USING fts3(tokenize=fmdb testTok)"];
-    XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db lastErrorMessage]);
+    BOOL ok = [self.db fmdb_executeUpdate:@"CREATE VIRTUAL TABLE simple USING fts3(tokenize=fmdb testTok)"];
+    XCTAssertTrue(ok, @"Failed to create virtual table: %@", [self.db fmdb_lastErrorMessage]);
 
     // The FMDBSimpleTokenizer handles non-ASCII characters well, since it's based on CFStringTokenizer.
     NSString *text = @"I like the band Queensrÿche. They are really great musicians.";
     
-    ok = [self.db executeUpdate:@"INSERT INTO simple VALUES(?)", text];
-    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db lastErrorMessage]);
+    ok = [self.db fmdb_executeUpdate:@"INSERT INTO simple VALUES(?)", text];
+    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db fmdb_lastErrorMessage]);
     
     FMDBResultSet *results = [self.db executeQuery:@"SELECT * FROM simple WHERE simple MATCH ?", @"Queensrÿche"];
-    XCTAssertTrue([results next], @"Failed to find result");
+    XCTAssertTrue([results fmdb_next], @"Failed to find result");
     
-    ok = [self.db executeUpdate:@"CREATE VIRTUAL TABLE depluralize_t USING fts3(tokenize=fmdb depluralize)"];
-    XCTAssertTrue(ok, @"Failed to create virtual table with depluralize tokenizer: %@", [self.db lastErrorMessage]);
+    ok = [self.db fmdb_executeUpdate:@"CREATE VIRTUAL TABLE depluralize_t USING fts3(tokenize=fmdb depluralize)"];
+    XCTAssertTrue(ok, @"Failed to create virtual table with depluralize tokenizer: %@", [self.db fmdb_lastErrorMessage]);
 
-    ok = [self.db executeUpdate:@"INSERT INTO depluralize_t VALUES(?)", text];
-    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db lastErrorMessage]);
+    ok = [self.db fmdb_executeUpdate:@"INSERT INTO depluralize_t VALUES(?)", text];
+    XCTAssertTrue(ok, @"Failed to insert data: %@", [self.db fmdb_lastErrorMessage]);
 
     //If depluralization is working, searching for 'bands' should still provide a match as 'band' is in the text
     results = [self.db executeQuery:@"SELECT * FROM depluralize_t WHERE depluralize_t MATCH ?", @"bands"];
-    XCTAssertTrue([results next], @"Failed to find result");
+    XCTAssertTrue([results fmdb_next], @"Failed to find result");
     
     //Demonstrate that depluralization mattered; we should NOT find any results when searching the simple table as it does not use that tokenizer
     results = [self.db executeQuery:@"SELECT * FROM simple WHERE simple MATCH ?", @"bands"];
-    XCTAssertFalse([results next], @"Found a result where none should be found");
+    XCTAssertFalse([results fmdb_next], @"Found a result where none should be found");
 }
 
 @end

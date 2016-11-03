@@ -35,10 +35,10 @@
 
 - (void)testFunkyTableNames
 {
-    [self.db executeUpdate:@"create table '234 fds' (foo text)"];
+    [self.db fmdb_executeUpdate:@"create table '234 fds' (foo text)"];
     XCTAssertFalse([self.db hadError], @"table creation should have succeeded");
     FMDBResultSet *rs = [self.db getTableSchema:@"234 fds"];
-    XCTAssertTrue([rs next], @"Schema should have succeded");
+    XCTAssertTrue([rs fmdb_next], @"Schema should have succeded");
     [rs close];
     XCTAssertFalse([self.db hadError], @"There shouldn't be any errors");
 }
@@ -58,8 +58,8 @@
 
 - (void)testIntForQuery
 {
-    [self.db executeUpdate:@"create table t1 (a integer)"];
-    [self.db executeUpdate:@"insert into t1 values (?)", [NSNumber numberWithInt:5]];
+    [self.db fmdb_executeUpdate:@"create table t1 (a integer)"];
+    [self.db fmdb_executeUpdate:@"insert into t1 values (?)", [NSNumber numberWithInt:5]];
     
     XCTAssertEqual([self.db changes], 1, @"There should only be one change");
     
@@ -70,8 +70,8 @@
 - (void)testDateForQuery
 {
     NSDate *date = [NSDate date];
-    [self.db executeUpdate:@"create table datetest (a double, b double, c double)"];
-    [self.db executeUpdate:@"insert into datetest (a, b, c) values (?, ?, 0)" , [NSNull null], date];
+    [self.db fmdb_executeUpdate:@"create table datetest (a double, b double, c double)"];
+    [self.db fmdb_executeUpdate:@"insert into datetest (a, b, c) values (?, ?, 0)" , [NSNull null], date];
 
     NSDate *foo = [self.db dateForQuery:@"select b from datetest where c = 0"];
     XCTAssertEqualWithAccuracy([foo timeIntervalSinceDate:date], 0.0, 1.0, @"Dates should be the same to within a second");
@@ -79,13 +79,13 @@
 
 - (void)testTableExists
 {
-    XCTAssertTrue([self.db executeUpdate:@"create table t4 (a text, b text)"]);
+    XCTAssertTrue([self.db fmdb_executeUpdate:@"create table t4 (a text, b text)"]);
 
     XCTAssertTrue([self.db tableExists:@"t4"]);
     XCTAssertFalse([self.db tableExists:@"thisdoesntexist"]);
     
     FMDBResultSet *rs = [self.db getSchema];
-    while ([rs next]) {
+    while ([rs fmdb_next]) {
         XCTAssertEqualObjects([rs stringForColumn:@"type"], @"table");
     }
 
@@ -93,7 +93,7 @@
 
 - (void)testColumnExists
 {
-    [self.db executeUpdate:@"create table nulltest (a text, b text)"];
+    [self.db fmdb_executeUpdate:@"create table nulltest (a text, b text)"];
     
     XCTAssertTrue([self.db columnExists:@"a" inTableWithName:@"nulltest"]);
     XCTAssertTrue([self.db columnExists:@"b" inTableWithName:@"nulltest"]);

@@ -234,7 +234,7 @@ static const sqlite3_tokenizer_module FMDBTokenizerModule =
     
     FMDBResultSet *results = [self executeQuery:@"SELECT fts3_tokenizer(?, ?)", name, tokenizerData];
     
-    if ([results next]) {
+    if ([results fmdb_next]) {
         [results close];
         return YES;
     }
@@ -251,7 +251,7 @@ static const sqlite3_tokenizer_module FMDBTokenizerModule =
 {
     NSString *sql = [NSString stringWithFormat:@"INSERT INTO %1$@(%1$@) VALUES (?)", tableName];
     
-    return [self executeUpdate:sql, command];
+    return [self fmdb_executeUpdate:sql, command];
 }
 
 @end

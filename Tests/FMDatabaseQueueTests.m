@@ -25,12 +25,12 @@
 
 + (void)populateDatabase:(FMDBDatabase *)db
 {
-    [db executeUpdate:@"create table easy (a text)"];
+    [db fmdb_executeUpdate:@"create table easy (a text)"];
     
-    [db executeUpdate:@"create table qfoo (foo text)"];
-    [db executeUpdate:@"insert into qfoo values ('hi')"];
-    [db executeUpdate:@"insert into qfoo values ('hello')"];
-    [db executeUpdate:@"insert into qfoo values ('not')"];
+    [db fmdb_executeUpdate:@"create table qfoo (foo text)"];
+    [db fmdb_executeUpdate:@"insert into qfoo values ('hi')"];
+    [db fmdb_executeUpdate:@"insert into qfoo values ('hello')"];
+    [db fmdb_executeUpdate:@"insert into qfoo values ('not')"];
 }
 
 - (void)setUp
@@ -52,7 +52,7 @@
     [self.queue inDatabase:^(FMDBDatabase *adb) {
         int count = 0;
         FMDBResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
-        while ([rsl next]) {
+        while ([rsl fmdb_next]) {
             count++;
         }
         
@@ -60,7 +60,7 @@
         
         count = 0;
         rsl = [adb executeQuery:@"select * from qfoo where foo like ?", @"h%"];
-        while ([rsl next]) {
+        while ([rsl fmdb_next]) {
             count++;
         }
         
@@ -80,7 +80,7 @@
 
             [rs1 close];
             
-            XCTAssertFalse(([db2 executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:3]]), @"Insert should fail because this is a read-only database");
+            XCTAssertFalse(([db2 fmdb_executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:3]]), @"Insert should fail because this is a read-only database");
         }];
         
         [queue2 close];
@@ -92,7 +92,7 @@
             
             [rs1 close];
             
-            XCTAssertFalse(([db2 executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:3]]), @"Insert should fail because this is a read-only database");
+            XCTAssertFalse(([db2 fmdb_executeUpdate:@"insert into easy values (?)", [NSNumber numberWithInt:3]]), @"Insert should fail because this is a read-only database");
         }];
     }
 }
@@ -111,7 +111,7 @@
             
             [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
                 FMDBResultSet *rsl = [adb executeQuery:@"select * from qfoo where foo like 'h%'"];
-                while ([rsl next]) {
+                while ([rsl fmdb_next]) {
                     ;// whatever.
                 }
             }];
@@ -123,29 +123,29 @@
         }
         
         [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
-            XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('1')"]);
-            XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('2')"]);
-            XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('3')"]);
+            XCTAssertTrue([adb fmdb_executeUpdate:@"insert into qfoo values ('1')"]);
+            XCTAssertTrue([adb fmdb_executeUpdate:@"insert into qfoo values ('2')"]);
+            XCTAssertTrue([adb fmdb_executeUpdate:@"insert into qfoo values ('3')"]);
         }];
     });
     
     [self.queue close];
     
     [self.queue inDatabase:^(FMDBDatabase *adb) {
-        XCTAssertTrue([adb executeUpdate:@"insert into qfoo values ('1')"]);
+        XCTAssertTrue([adb fmdb_executeUpdate:@"insert into qfoo values ('1')"]);
     }];
 }
 
 - (void)testTransaction
 {
     [self.queue inDatabase:^(FMDBDatabase *adb) {
-        [adb executeUpdate:@"create table transtest (a integer)"];
-        XCTAssertTrue([adb executeUpdate:@"insert into transtest values (1)"]);
-        XCTAssertTrue([adb executeUpdate:@"insert into transtest values (2)"]);
+        [adb fmdb_executeUpdate:@"create table transtest (a integer)"];
+        XCTAssertTrue([adb fmdb_executeUpdate:@"insert into transtest values (1)"]);
+        XCTAssertTrue([adb fmdb_executeUpdate:@"insert into transtest values (2)"]);
         
         int rowCount = 0;
         FMDBResultSet *ars = [adb executeQuery:@"select * from transtest"];
-        while ([ars next]) {
+        while ([ars fmdb_next]) {
             rowCount++;
         }
         
@@ -153,7 +153,7 @@
     }];
     
     [self.queue inTransaction:^(FMDBDatabase *adb, BOOL *rollback) {
-        XCTAssertTrue([adb executeUpdate:@"insert into transtest values (3)"]);
+        XCTAssertTrue([adb fmdb_executeUpdate:@"insert into transtest values (3)"]);
         
         if (YES) {
             // uh oh!, something went wrong (not really, this is just a test
@@ -168,7 +168,7 @@
         
         int rowCount = 0;
         FMDBResultSet *ars = [adb executeQuery:@"select * from transtest"];
-        while ([ars next]) {
+        while ([ars fmdb_next]) {
             rowCount++;
         }
         

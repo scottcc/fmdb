@@ -24,7 +24,7 @@ extension FMDBDatabase {
         return try executeQuery(sql, values: values as [AnyObject]);
     }
     
-    /// This is a rendition of executeUpdate that handles Swift variadic parameters
+    /// This is a rendition of fmdb_executeUpdate that handles Swift variadic parameters
     /// for the values to be bound to the ? placeholders in the SQL.
     ///
     /// This throws any error that occurs.
@@ -32,7 +32,7 @@ extension FMDBDatabase {
     /// - parameter sql:     The SQL statement to be used.
     /// - parameter values:  The values to be bound to the ? placeholders
     
-    func executeUpdate(sql:String, _ values: AnyObject...) throws {
-        try executeUpdate(sql, values: values as [AnyObject]);
+    func fmdb_executeUpdate(sql:String, _ values: AnyObject...) throws {
+        try fmdb_executeUpdate(sql, values: values as [AnyObject]);
     }
 }

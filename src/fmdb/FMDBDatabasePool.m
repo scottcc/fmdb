@@ -219,7 +219,7 @@
     [self pushDatabaseBackInPool:db];
 }
 
-- (void)beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
+- (void)fmdb_beginTransaction:(BOOL)useDeferred withBlock:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
     
     BOOL shouldRollback = NO;
     
@@ -229,7 +229,7 @@
         [db beginDeferredTransaction];
     }
     else {
-        [db beginTransaction];
+        [db fmdb_beginTransaction];
     }
     
     
@@ -246,11 +246,11 @@
 }
 
 - (void)inDeferredTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
-    [self beginTransaction:YES withBlock:block];
+    [self fmdb_beginTransaction:YES withBlock:block];
 }
 
 - (void)inTransaction:(void (^)(FMDBDatabase *db, BOOL *rollback))block {
-    [self beginTransaction:NO withBlock:block];
+    [self fmdb_beginTransaction:NO withBlock:block];
 }
 
 - (NSError*)inSavePoint:(void (^)(FMDBDatabase *db, BOOL *rollback))block {

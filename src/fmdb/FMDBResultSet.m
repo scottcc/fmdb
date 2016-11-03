@@ -152,7 +152,7 @@
 
 
 
-- (BOOL)next {
+- (BOOL)fmdb_next {
     return [self nextWithError:nil];
 }
 
@@ -184,7 +184,7 @@
                 *outErr = [_parentDB lastError];
             }
             else {
-                // If 'next' or 'nextWithError' is called after the result set is closed,
+                // If 'fmdb_next' or 'nextWithError' is called after the result set is closed,
                 // we need to return the appropriate error.
                 NSDictionary* errorMessage = [NSDictionary dictionaryWithObject:@"parentDB does not exist" forKey:NSLocalizedDescriptionKey];
                 *outErr = [NSError errorWithDomain:@"FMDBDatabase" code:SQLITE_MISUSE userInfo:errorMessage];
@@ -229,10 +229,10 @@
 
 
 - (int)intForColumn:(NSString*)columnName {
-    return [self intForColumnIndex:[self columnIndexForName:columnName]];
+    return [self fmdb_intForColumnIndex:[self columnIndexForName:columnName]];
 }
 
-- (int)intForColumnIndex:(int)columnIdx {
+- (int)fmdb_intForColumnIndex:(int)columnIdx {
     return sqlite3_column_int([_statement statement], columnIdx);
 }
 
@@ -265,18 +265,18 @@
 }
 
 - (BOOL)boolForColumnIndex:(int)columnIdx {
-    return ([self intForColumnIndex:columnIdx] != 0);
+    return ([self fmdb_intForColumnIndex:columnIdx] != 0);
 }
 
 - (double)doubleForColumn:(NSString*)columnName {
-    return [self doubleForColumnIndex:[self columnIndexForName:columnName]];
+    return [self fmdb_doubleForColumnIndex:[self columnIndexForName:columnName]];
 }
 
-- (double)doubleForColumnIndex:(int)columnIdx {
+- (double)fmdb_doubleForColumnIndex:(int)columnIdx {
     return sqlite3_column_double([_statement statement], columnIdx);
 }
 
-- (NSString*)stringForColumnIndex:(int)columnIdx {
+- (NSString*)fmdb_stringForColumnIndex:(int)columnIdx {
     
     if (sqlite3_column_type([_statement statement], columnIdx) == SQLITE_NULL || (columnIdx < 0)) {
         return nil;
@@ -293,7 +293,7 @@
 }
 
 - (NSString*)stringForColumn:(NSString*)columnName {
-    return [self stringForColumnIndex:[self columnIndexForName:columnName]];
+    return [self fmdb_stringForColumnIndex:[self columnIndexForName:columnName]];
 }
 
 - (NSDate*)dateForColumn:(NSString*)columnName {
@@ -306,7 +306,7 @@
         return nil;
     }
     
-    return [_parentDB hasDateFormatter] ? [_parentDB dateFromString:[self stringForColumnIndex:columnIdx]] : [NSDate dateWithTimeIntervalSince1970:[self doubleForColumnIndex:columnIdx]];
+    return [_parentDB hasDateFormatter] ? [_parentDB dateFromString:[self fmdb_stringForColumnIndex:columnIdx]] : [NSDate dateWithTimeIntervalSince1970:[self fmdb_doubleForColumnIndex:columnIdx]];
 }
 
 
@@ -380,14 +380,14 @@
         returnValue = [NSNumber numberWithLongLong:[self longLongIntForColumnIndex:columnIdx]];
     }
     else if (columnType == SQLITE_FLOAT) {
-        returnValue = [NSNumber numberWithDouble:[self doubleForColumnIndex:columnIdx]];
+        returnValue = [NSNumber numberWithDouble:[self fmdb_doubleForColumnIndex:columnIdx]];
     }
     else if (columnType == SQLITE_BLOB) {
         returnValue = [self dataForColumnIndex:columnIdx];
     }
     else {
         //default to a string for everything else
-        returnValue = [self stringForColumnIndex:columnIdx];
+        returnValue = [self fmdb_stringForColumnIndex:columnIdx];
     }
     
     if (returnValue == nil) {

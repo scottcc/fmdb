@@ -11,7 +11,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Also changed the `FMDatabaseVariadic.swift` to throw errors for Swift 2.
 
 2015.10.29
-    Added renditions of `executeUpdate:values:error:` and `executeQuery:values:error:`, which in Swift 2 throw errors.
+    Added renditions of `fmdb_executeUpdate:values:error:` and `executeQuery:values:error:`, which in Swift 2 throw errors.
 
 2015.01.23
     Added Swift renditions of the variadic methods of `FMDBDatabaseAdditions`.
@@ -25,7 +25,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 2014.04.23
     New executeStatements: method, which will take a single UTF-8 string with multiple statements in it.  This is great for batch updates.  There is also a executeStatements:withResultBlock: version which takes a callback block which will be used for any statements which return rows in the bulk statement.  Thanks to Rob Ryan for contributing code for this.
 
-    Deprecated `update:withErrorAndBindings:` in favor of `executeUpdate:withErrorAndBindings:` or `executeUpdate:values:error:`.
+    Deprecated `update:withErrorAndBindings:` in favor of `fmdb_executeUpdate:withErrorAndBindings:` or `fmdb_executeUpdate:values:error:`.
 
 2014.04.09
     Added back in busy handler code after a brief hiatus (check out the 2013.12.10 notes).  But now doing so with sqlite3_busy_handler instead of while loops in the various execution places.
@@ -201,11 +201,11 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     
     Reworked:
         - (id)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments;
-        - (BOOL) executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
+        - (BOOL) fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
         
         These two methods now point to:
         - (id) executeQuery:(NSString*)sql withArgumentsInArray:(NSArray*)arrayArgs orVAList:(va_list)args;
-        - (BOOL) executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray*)arrayArgs orVAList:(va_list)args;
+        - (BOOL) fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray*)arrayArgs orVAList:(va_list)args;
         
         because the vargs were causing headaches in 64bit land, and on the iphone, and it's fragile n' stuff.
 
@@ -220,7 +220,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Disabled the following FMDBDatabaseAdditions when compiled as 64 bit:
         - (id)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments;
         and
-        - (BOOL) executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
+        - (BOOL) fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
     
     Since they crash, I just print out a warning now.  Got a patch to fix it?  Send it to gus@flyingmeat.com
     
@@ -248,7 +248,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
 2009.05.23
     Added:
     - (id)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments;
-    - (BOOL) executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;    
+    - (BOOL) fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;    
     thanks to code from Phong Long.
     
     
@@ -265,7 +265,7 @@ If you would like to contribute some code ... awesome!  I just ask that you make
     Tested on 10.6.  It works.  Not that I didn't expect it not to- but you never know…
 
 2009.05.05
-    stringForColumnIndex, stringForColumn, dataForColumnIndex, dataForColumn, dataNoCopyForColumnIndex, and dataNoCopyForColumn now return nil if a null value was inserted into its table row.  dateForColumnIndex already did this.
+    fmdb_stringForColumnIndex, stringForColumn, dataForColumnIndex, dataForColumn, dataNoCopyForColumnIndex, and dataNoCopyForColumn now return nil if a null value was inserted into its table row.  dateForColumnIndex already did this.
     
     Also added the following methods to test if a column is null or not:
         - (BOOL) columnIndexIsNull:(int)columnIdx

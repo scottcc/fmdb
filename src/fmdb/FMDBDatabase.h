@@ -285,21 +285,21 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @param ... Optional parameters to bind to `?` placeholders in the SQL statement. These should be Objective-C objects (e.g. `NSString`, `NSNumber`, etc.), not fundamental C data types (e.g. `int`, `char *`, etc.).
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  @see [`sqlite3_bind`](http://sqlite.org/c3ref/bind_blob.html)
  */
 
-- (BOOL)executeUpdate:(NSString*)sql withErrorAndBindings:(NSError**)outErr, ...;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withErrorAndBindings:(NSError**)outErr, ...;
 
 /** Execute single update statement
  
- @see executeUpdate:withErrorAndBindings:
+ @see fmdb_executeUpdate:withErrorAndBindings:
  
- @warning **Deprecated**: Please use `<executeUpdate:withErrorAndBindings>` instead.
+ @warning **Deprecated**: Please use `<fmdb_executeUpdate:withErrorAndBindings>` instead.
  */
 
 - (BOOL)update:(NSString*)sql withErrorAndBindings:(NSError**)outErr, ... __attribute__ ((deprecated));
@@ -314,42 +314,42 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param ... Optional parameters to bind to `?` placeholders in the SQL statement. These should be Objective-C objects (e.g. `NSString`, `NSNumber`, etc.), not fundamental C data types (e.g. `int`, `char *`, etc.).
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  @see [`sqlite3_bind`](http://sqlite.org/c3ref/bind_blob.html)
  
  @note This technique supports the use of `?` placeholders in the SQL, automatically binding any supplied value parameters to those placeholders. This approach is more robust than techniques that entail using `stringWithFormat` to manually build SQL statements, which can be problematic if the values happened to include any characters that needed to be quoted.
  
- @note You cannot use this method from Swift due to incompatibilities between Swift and Objective-C variadic implementations. Consider using `<executeUpdate:values:>` instead.
+ @note You cannot use this method from Swift due to incompatibilities between Swift and Objective-C variadic implementations. Consider using `<fmdb_executeUpdate:values:>` instead.
  */
 
-- (BOOL)executeUpdate:(NSString*)sql, ...;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql, ...;
 
 /** Execute single update statement
 
- This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL. Do not use `?` placeholders in the SQL if you use this method.
+ This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `fmdb_executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL. Do not use `?` placeholders in the SQL if you use this method.
 
  @param format The SQL to be performed, with `printf`-style escape sequences.
 
  @param ... Optional parameters to bind to use in conjunction with the `printf`-style escape sequences in the SQL statement.
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
- @see executeUpdate:
+ @see fmdb_executeUpdate:
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  
  @note This method does not technically perform a traditional printf-style replacement. What this method actually does is replace the printf-style percent sequences with a SQLite `?` placeholder, and then bind values to that placeholder. Thus the following command
 
     [db executeUpdateWithFormat:@"INSERT INTO test (name) VALUES (%@)", @"Gus"];
 
- is actually replacing the `%@` with `?` placeholder, and then performing something equivalent to `<executeUpdate:>`
+ is actually replacing the `%@` with `?` placeholder, and then performing something equivalent to `<fmdb_executeUpdate:>`
 
-    [db executeUpdate:@"INSERT INTO test (name) VALUES (?)", @"Gus"];
+    [db fmdb_executeUpdate:@"INSERT INTO test (name) VALUES (?)", @"Gus"];
 
  There are two reasons why this distinction is important. First, the printf-style escape sequences can only be used where it is permissible to use a SQLite `?` placeholder. You can use it only for values in SQL statements, but not for table names or column names or any other non-value context. This method also cannot be used in conjunction with `pragma` statements and the like. Second, note the lack of quotation marks in the SQL. The `VALUES` clause was _not_ `VALUES ('%@')` (like you might have to do if you built a SQL statement using `NSString` method `stringWithFormat`), but rather simply `VALUES (%@)`.
  */
@@ -366,15 +366,15 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @param arguments A `NSArray` of objects to be used when binding values to the `?` placeholders in the SQL statement.
  
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
- @see executeUpdate:values:error:
+ @see fmdb_executeUpdate:values:error:
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  */
 
-- (BOOL)executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withArgumentsInArray:(NSArray *)arguments;
 
 /** Execute single update statement
  
@@ -382,11 +382,11 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  The optional values provided to this method should be objects (e.g. `NSString`, `NSNumber`, `NSNull`, `NSDate`, and `NSData` objects), not fundamental data types (e.g. `int`, `long`, `NSInteger`, etc.). This method automatically handles the aforementioned object types, and all other object types will be interpreted as text values using the object's `description` method.
  
- This is similar to `<executeUpdate:withArgumentsInArray:>`, except that this also accepts a pointer to a `NSError` pointer, so that errors can be returned.
+ This is similar to `<fmdb_executeUpdate:withArgumentsInArray:>`, except that this also accepts a pointer to a `NSError` pointer, so that errors can be returned.
 
  In Swift 2, this throws errors, as if it were defined as follows:
  
- `func executeUpdate(sql: String!, values: [AnyObject]!) throws -> Bool`
+ `func fmdb_executeUpdate(sql: String!, values: [AnyObject]!) throws -> Bool`
  
  @param sql The SQL to be performed, with optional `?` placeholders.
  
@@ -394,19 +394,19 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param error A `NSError` object to receive any error object (if any).
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  
  */
 
-- (BOOL)executeUpdate:(NSString*)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql values:(NSArray *)values error:(NSError * __autoreleasing *)error;
 
 /** Execute single update statement
 
- This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL.
+ This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `fmdb_executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL.
 
  The optional values provided to this method should be objects (e.g. `NSString`, `NSNumber`, `NSNull`, `NSDate`, and `NSData` objects), not fundamental data types (e.g. `int`, `long`, `NSInteger`, etc.). This method automatically handles the aforementioned object types, and all other object types will be interpreted as text values using the object's `description` method.
 
@@ -414,19 +414,19 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param arguments A `NSDictionary` of objects keyed by column names that will be used when binding values to the `?` placeholders in the SQL statement.
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
 */
 
-- (BOOL)executeUpdate:(NSString*)sql withParameterDictionary:(NSDictionary *)arguments;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withParameterDictionary:(NSDictionary *)arguments;
 
 
 /** Execute single update statement
 
- This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL.
+ This method executes a single SQL update statement (i.e. any SQL that does not return results, such as `UPDATE`, `INSERT`, or `DELETE`. This method employs [`sqlite3_prepare_v2`](http://sqlite.org/c3ref/prepare.html) and [`sqlite_step`](http://sqlite.org/c3ref/step.html) to perform the update. Unlike the other `fmdb_executeUpdate` methods, this uses printf-style formatters (e.g. `%s`, `%d`, etc.) to build the SQL.
 
  The optional values provided to this method should be objects (e.g. `NSString`, `NSNumber`, `NSNull`, `NSDate`, and `NSData` objects), not fundamental data types (e.g. `int`, `long`, `NSInteger`, etc.). This method automatically handles the aforementioned object types, and all other object types will be interpreted as text values using the object's `description` method.
 
@@ -434,14 +434,14 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param args A `va_list` of arguments.
 
- @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  */
 
-- (BOOL)executeUpdate:(NSString*)sql withVAList: (va_list)args;
+- (BOOL)fmdb_executeUpdate:(NSString*)sql withVAList: (va_list)args;
 
 /** Execute multiple SQL statements
  
@@ -449,7 +449,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param  sql  The SQL to be performed
  
- @return      `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return      `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see executeStatements:withResultBlock:
  @see [sqlite3_exec()](http://sqlite.org/c3ref/exec.html)
@@ -469,7 +469,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
                   This may be `nil` if you don't care to receive any results.
 
  @return          `YES` upon success; `NO` upon failure. If failed, you can call `<lastError>`,
-                  `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+                  `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see executeStatements:
  @see [sqlite3_exec()](http://sqlite.org/c3ref/exec.html)
@@ -511,9 +511,9 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Execute select statement
 
- Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<lastErrorMessage>` and `<lastErrorMessage>` methods to determine why a query failed.
+ Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<fmdb_lastErrorMessage>` and `<fmdb_lastErrorMessage>` methods to determine why a query failed.
  
- In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet next]>`) from one record to the other.
+ In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet fmdb_next]>`) from one record to the other.
  
  This method employs [`sqlite3_bind`](http://sqlite.org/c3ref/bind_blob.html) for any optional value parameters. This  properly escapes any characters that need escape sequences (e.g. quotation marks), which eliminates simple SQL errors as well as protects against SQL injection attacks. This method natively handles `NSString`, `NSNumber`, `NSNull`, `NSDate`, and `NSData` objects. All other object types will be interpreted as text values using the object's `description` method.
 
@@ -521,10 +521,10 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param ... Optional parameters to bind to `?` placeholders in the SQL statement. These should be Objective-C objects (e.g. `NSString`, `NSNumber`, etc.), not fundamental C data types (e.g. `int`, `char *`, etc.).
 
- @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see FMDBResultSet
- @see [`FMDBResultSet next`](<[FMDBResultSet next]>)
+ @see [`FMDBResultSet fmdb_next`](<[FMDBResultSet fmdb_next]>)
  @see [`sqlite3_bind`](http://sqlite.org/c3ref/bind_blob.html)
  
  @note You cannot use this method from Swift due to incompatibilities between Swift and Objective-C variadic implementations. Consider using `<executeQuery:values:>` instead.
@@ -534,19 +534,19 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Execute select statement
 
- Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<lastErrorMessage>` and `<lastErrorMessage>` methods to determine why a query failed.
+ Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<fmdb_lastErrorMessage>` and `<fmdb_lastErrorMessage>` methods to determine why a query failed.
  
- In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet next]>`) from one record to the other.
+ In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet fmdb_next]>`) from one record to the other.
  
  @param format The SQL to be performed, with `printf`-style escape sequences.
 
  @param ... Optional parameters to bind to use in conjunction with the `printf`-style escape sequences in the SQL statement.
 
- @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see executeQuery:
  @see FMDBResultSet
- @see [`FMDBResultSet next`](<[FMDBResultSet next]>)
+ @see [`FMDBResultSet fmdb_next`](<[FMDBResultSet fmdb_next]>)
 
  @note This method does not technically perform a traditional printf-style replacement. What this method actually does is replace the printf-style percent sequences with a SQLite `?` placeholder, and then bind values to that placeholder. Thus the following command
  
@@ -564,28 +564,28 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Execute select statement
 
- Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<lastErrorMessage>` and `<lastErrorMessage>` methods to determine why a query failed.
+ Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<fmdb_lastErrorMessage>` and `<fmdb_lastErrorMessage>` methods to determine why a query failed.
  
- In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet next]>`) from one record to the other.
+ In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet fmdb_next]>`) from one record to the other.
  
  @param sql The SELECT statement to be performed, with optional `?` placeholders.
 
  @param arguments A `NSArray` of objects to be used when binding values to the `?` placeholders in the SQL statement.
 
- @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see -executeQuery:values:error:
  @see FMDBResultSet
- @see [`FMDBResultSet next`](<[FMDBResultSet next]>)
+ @see [`FMDBResultSet fmdb_next`](<[FMDBResultSet fmdb_next]>)
  */
 
 - (FMDBResultSet *)executeQuery:(NSString *)sql withArgumentsInArray:(NSArray *)arguments;
 
 /** Execute select statement
  
- Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<lastErrorMessage>` and `<lastErrorMessage>` methods to determine why a query failed.
+ Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<fmdb_lastErrorMessage>` and `<fmdb_lastErrorMessage>` methods to determine why a query failed.
  
- In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet next]>`) from one record to the other.
+ In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet fmdb_next]>`) from one record to the other.
  
  This is similar to `<executeQuery:withArgumentsInArray:>`, except that this also accepts a pointer to a `NSError` pointer, so that errors can be returned.
  
@@ -599,10 +599,10 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
  @param error A `NSError` object to receive any error object (if any).
 
- @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see FMDBResultSet
- @see [`FMDBResultSet next`](<[FMDBResultSet next]>)
+ @see [`FMDBResultSet fmdb_next`](<[FMDBResultSet fmdb_next]>)
  
  @note When called from Swift, only use the first two parameters, `sql` and `values`. This but throws the error.
 
@@ -612,18 +612,18 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Execute select statement
 
- Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<lastErrorMessage>` and `<lastErrorMessage>` methods to determine why a query failed.
+ Executing queries returns an `<FMDBResultSet>` object if successful, and `nil` upon failure.  Like executing updates, there is a variant that accepts an `NSError **` parameter.  Otherwise you should use the `<fmdb_lastErrorMessage>` and `<fmdb_lastErrorMessage>` methods to determine why a query failed.
  
- In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet next]>`) from one record to the other.
+ In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" (via `<[FMDBResultSet fmdb_next]>`) from one record to the other.
  
  @param sql The SELECT statement to be performed, with optional `?` placeholders.
 
  @param arguments A `NSDictionary` of objects keyed by column names that will be used when binding values to the `?` placeholders in the SQL statement.
 
- @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return A `<FMDBResultSet>` for the result set upon success; `nil` upon failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see FMDBResultSet
- @see [`FMDBResultSet next`](<[FMDBResultSet next]>)
+ @see [`FMDBResultSet fmdb_next`](<[FMDBResultSet fmdb_next]>)
  */
 
 - (FMDBResultSet *)executeQuery:(NSString *)sql withParameterDictionary:(NSDictionary *)arguments;
@@ -638,7 +638,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Begin a transaction
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see commit
  @see rollback
@@ -646,15 +646,15 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  @see inTransaction
  */
 
-- (BOOL)beginTransaction;
+- (BOOL)fmdb_beginTransaction;
 
 /** Begin a deferred transaction
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see commit
  @see rollback
- @see beginTransaction
+ @see fmdb_beginTransaction
  @see inTransaction
  */
 
@@ -662,11 +662,11 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Commit a transaction
 
- Commit a transaction that was initiated with either `<beginTransaction>` or with `<beginDeferredTransaction>`.
+ Commit a transaction that was initiated with either `<fmdb_beginTransaction>` or with `<beginDeferredTransaction>`.
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
- @see beginTransaction
+ @see fmdb_beginTransaction
  @see beginDeferredTransaction
  @see rollback
  @see inTransaction
@@ -676,11 +676,11 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
 /** Rollback a transaction
 
- Rollback a transaction that was initiated with either `<beginTransaction>` or with `<beginDeferredTransaction>`.
+ Rollback a transaction that was initiated with either `<fmdb_beginTransaction>` or with `<beginDeferredTransaction>`.
 
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
- @see beginTransaction
+ @see fmdb_beginTransaction
  @see beginDeferredTransaction
  @see commit
  @see inTransaction
@@ -692,7 +692,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @return `YES` if currently within transaction; `NO` if not.
  
- @see beginTransaction
+ @see fmdb_beginTransaction
  @see beginDeferredTransaction
  @see commit
  @see rollback
@@ -738,7 +738,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  This method causes any pending database operation to abort and return at its earliest opportunity
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  */
 
@@ -838,7 +838,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  */
 
-- (NSString*)lastErrorMessage;
+- (NSString*)fmdb_lastErrorMessage;
 
 /** Last error code
  
@@ -847,7 +847,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  @return Integer value of the last error code.
  
  @see [sqlite3_errcode()](http://sqlite.org/c3ref/errcode.html)
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  @see lastError
  
  */
@@ -863,7 +863,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  @see [sqlite3_errcode()](http://sqlite.org/c3ref/errcode.html)
  @see [2. Primary Result Codes versus Extended Result Codes](http://sqlite.org/rescode.html#primary_result_codes_versus_extended_result_codes)
  @see [5. Extended Result Code List](http://sqlite.org/rescode.html#extrc)
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  @see lastError
  
  */
@@ -876,7 +876,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @see lastError
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  
  */
 
@@ -887,7 +887,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  @return `NSError` representing the last error.
  
  @see lastErrorCode
- @see lastErrorMessage
+ @see fmdb_lastErrorMessage
  
  */
 
@@ -909,7 +909,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @param outErr A `NSError` object to receive any error object (if any).
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see releaseSavePointWithName:error:
  @see rollbackToSavePointWithName:error:
@@ -923,7 +923,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
  @param outErr A `NSError` object to receive any error object (if any).
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
 
  @see startSavePointWithName:error:
  @see rollbackToSavePointWithName:error:
@@ -937,7 +937,7 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  @param name Name of save point.
  @param outErr A `NSError` object to receive any error object (if any).
  
- @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<lastErrorMessage>` for diagnostic information regarding the failure.
+ @return `YES` on success; `NO` on failure. If failed, you can call `<lastError>`, `<lastErrorCode>`, or `<fmdb_lastErrorMessage>` for diagnostic information regarding the failure.
  
  @see startSavePointWithName:error:
  @see releaseSavePointWithName:error:
@@ -998,11 +998,11 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
  
     [queue inDatabase:^(FMDBDatabase *adb) {
 
-        [adb executeUpdate:@"create table ftest (foo text)"];
-        [adb executeUpdate:@"insert into ftest values ('hello')"];
-        [adb executeUpdate:@"insert into ftest values ('hi')"];
-        [adb executeUpdate:@"insert into ftest values ('not h!')"];
-        [adb executeUpdate:@"insert into ftest values ('definitely not h!')"];
+        [adb fmdb_executeUpdate:@"create table ftest (foo text)"];
+        [adb fmdb_executeUpdate:@"insert into ftest values ('hello')"];
+        [adb fmdb_executeUpdate:@"insert into ftest values ('hi')"];
+        [adb fmdb_executeUpdate:@"insert into ftest values ('not h!')"];
+        [adb fmdb_executeUpdate:@"insert into ftest values ('definitely not h!')"];
 
         [adb makeFunctionNamed:@"StringStartsWithH" maximumArguments:1 withBlock:^(sqlite3_context *context, int aargc, sqlite3_value **aargv) {
             if (sqlite3_value_type(aargv[0]) == SQLITE_TEXT) {
@@ -1020,9 +1020,9 @@ typedef int(^FMDBExecuteStatementsCallbackBlock)(NSDictionary *resultsDictionary
 
         int rowCount = 0;
         FMDBResultSet *ars = [adb executeQuery:@"select * from ftest where StringStartsWithH(foo)"];
-        while ([ars next]) {
+        while ([ars fmdb_next]) {
             rowCount++;
-            NSLog(@"Does %@ start with 'h'?", [rs stringForColumnIndex:0]);
+            NSLog(@"Does %@ start with 'h'?", [rs fmdb_stringForColumnIndex:0]);
         }
         FMDBQuickCheck(rowCount == 2);
     }];

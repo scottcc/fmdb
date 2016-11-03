@@ -73,29 +73,29 @@ if (![db open]) {
 
 Any sort of SQL statement which is not a `SELECT` statement qualifies as an update.  This includes `CREATE`, `UPDATE`, `INSERT`, `ALTER`, `COMMIT`, `BEGIN`, `DETACH`, `DELETE`, `DROP`, `END`, `EXPLAIN`, `VACUUM`, and `REPLACE` statements (plus many more).  Basically, if your SQL statement does not begin with `SELECT`, it is an update statement.
 
-Executing updates returns a single value, a `BOOL`.  A return value of `YES` means the update was successfully executed, and a return value of `NO` means that some error was encountered.  You may invoke the `-lastErrorMessage` and `-lastErrorCode` methods to retrieve more information.
+Executing updates returns a single value, a `BOOL`.  A return value of `YES` means the update was successfully executed, and a return value of `NO` means that some error was encountered.  You may invoke the `-fmdb_lastErrorMessage` and `-lastErrorCode` methods to retrieve more information.
 
 ### Executing Queries
 
 A `SELECT` statement is a query and is executed via one of the `-executeQuery...` methods.
 
-Executing queries returns an `FMDBResultSet` object if successful, and `nil` upon failure.  You should use the `-lastErrorMessage` and `-lastErrorCode` methods to determine why a query failed.
+Executing queries returns an `FMDBResultSet` object if successful, and `nil` upon failure.  You should use the `-fmdb_lastErrorMessage` and `-lastErrorCode` methods to determine why a query failed.
 
 In order to iterate through the results of your query, you use a `while()` loop.  You also need to "step" from one record to the other.  With FMDB, the easiest way to do that is like this:
 
 ```objc
 FMDBResultSet *s = [db executeQuery:@"SELECT * FROM myTable"];
-while ([s next]) {
+while ([s fmdb_next]) {
     //retrieve values for each record
 }
 ```
 
-You must always invoke `-[FMDBResultSet next]` before attempting to access the values returned in a query, even if you're only expecting one:
+You must always invoke `-[FMDBResultSet fmdb_next]` before attempting to access the values returned in a query, even if you're only expecting one:
 
 ```objc
 FMDBResultSet *s = [db executeQuery:@"SELECT COUNT(*) FROM myTable"];
-if ([s next]) {
-    int totalCount = [s intForColumnIndex:0];
+if ([s fmdb_next]) {
+    int totalCount = [s fmdb_intForColumnIndex:0];
 }
 ```
 
@@ -172,9 +172,9 @@ NSString *name = @"Liam O'Flaherty (\"the famous Irish author\")";
 NSDate *date = [NSDate date];
 NSString *comment = nil;
 
-BOOL success = [db executeUpdate:@"INSERT INTO authors (identifier, name, date, comment) VALUES (?, ?, ?, ?)", @(identifier), name, date, comment ?: [NSNull null]];
+BOOL success = [db fmdb_executeUpdate:@"INSERT INTO authors (identifier, name, date, comment) VALUES (?, ?, ?, ?)", @(identifier), name, date, comment ?: [NSNull null]];
 if (!success) {
-    NSLog(@"error = %@", [db lastErrorMessage]);
+    NSLog(@"error = %@", [db fmdb_lastErrorMessage]);
 }
 ```
 
@@ -182,7 +182,7 @@ if (!success) {
 >
 > Likewise, SQL `NULL` values should be inserted as `[NSNull null]`. For example, in the case of `comment` which might be `nil` (and is in this example), you can use the `comment ?: [NSNull null]` syntax, which will insert the string if `comment` is not `nil`, but will insert `[NSNull null]` if it is `nil`.
 
-In Swift, you would use `executeUpdate(values:)`, which not only is a concise Swift syntax, but also `throws` errors for proper Swift 2 error handling:
+In Swift, you would use `fmdb_executeUpdate(values:)`, which not only is a concise Swift syntax, but also `throws` errors for proper Swift 2 error handling:
 
 ```swift
 do {
@@ -191,7 +191,7 @@ do {
     let date = NSDate()
     let comment: String? = nil
 
-    try db.executeUpdate("INSERT INTO authors (identifier, name, date, comment) VALUES (?, ?, ?, ?)", values: [identifier, name, date, comment ?? NSNull()])
+    try db.fmdb_executeUpdate("INSERT INTO authors (identifier, name, date, comment) VALUES (?, ?, ?, ?)", values: [identifier, name, date, comment ?? NSNull()])
 } catch {
     print("error = \(error)")
 }
@@ -209,9 +209,9 @@ The parameters *must* start with a colon. SQLite itself supports other character
 
 ```objc
 NSDictionary *arguments = @{@"identifier": @(identifier), @"name": name, @"date": date, @"comment": comment ?: [NSNull null]};
-BOOL success = [db executeUpdate:@"INSERT INTO authors (identifier, name, date, comment) VALUES (:identifier, :name, :date, :comment)" withParameterDictionary:arguments];
+BOOL success = [db fmdb_executeUpdate:@"INSERT INTO authors (identifier, name, date, comment) VALUES (:identifier, :name, :date, :comment)" withParameterDictionary:arguments];
 if (!success) {
-    NSLog(@"error = %@", [db lastErrorMessage]);
+    NSLog(@"error = %@", [db fmdb_lastErrorMessage]);
 }
 ```
 
@@ -236,12 +236,12 @@ Then use it like so:
 
 ```objc
 [queue inDatabase:^(FMDBDatabase *db) {
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
 
     FMDBResultSet *rs = [db executeQuery:@"select * from foo"];
-    while ([rs next]) {
+    while ([rs fmdb_next]) {
         …
     }
 }];
@@ -251,16 +251,16 @@ An easy way to wrap things up in a transaction can be done like this:
 
 ```objc
 [queue inTransaction:^(FMDBDatabase *db, BOOL *rollback) {
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @1];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @2];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @3];
 
     if (whoopsSomethingWrongHappened) {
         *rollback = YES;
         return;
     }
     // etc…
-    [db executeUpdate:@"INSERT INTO myTable VALUES (?)", @4];
+    [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", @4];
 }];
 ```
 
@@ -269,16 +269,16 @@ The Swift equivalent would be:
 ```swift
 queue.inTransaction { db, rollback in
     do {
-        try db.executeUpdate("INSERT INTO myTable VALUES (?)", values: [1])
-        try db.executeUpdate("INSERT INTO myTable VALUES (?)", values: [2])
-        try db.executeUpdate("INSERT INTO myTable VALUES (?)", values: [3])
+        try db.fmdb_executeUpdate("INSERT INTO myTable VALUES (?)", values: [1])
+        try db.fmdb_executeUpdate("INSERT INTO myTable VALUES (?)", values: [2])
+        try db.fmdb_executeUpdate("INSERT INTO myTable VALUES (?)", values: [3])
 
         if whoopsSomethingWrongHappened {
             rollback.memory = true
             return
         }
 
-        try db.executeUpdate("INSERT INTO myTable VALUES (?)", values: [4])
+        try db.fmdb_executeUpdate("INSERT INTO myTable VALUES (?)", values: [4])
     } catch {
         rollback.memory = true
         print(error)
@@ -304,7 +304,7 @@ To do this, you must:
 
  You can copy all of them (which is easiest), or only the ones you need. Likely you will need [`FMDBDatabase`](http://ccgus.github.io/fmdb/html/Classes/FMDBDatabase.html) and [`FMDBResultSet`](http://ccgus.github.io/fmdb/html/Classes/FMDBResultSet.html) at a minimum. [`FMDBDatabaseAdditions`](http://ccgus.github.io/fmdb/html/Categories/FMDBDatabase+FMDBDatabaseAdditions.html) provides some very useful convenience methods, so you will likely want that, too. If you are doing multithreaded access to a database, [`FMDBDatabaseQueue`](http://ccgus.github.io/fmdb/html/Classes/FMDBDatabaseQueue.html) is quite useful, too. If you choose to not copy all of the files from the `src` directory, though, you may want to update `FMDB.h` to only reference the files that you included in your project.
 
- Note, if you're copying all of the files from the `src` folder into to your project (which is recommended), you may want to drag the individual files into your project, not the folder, itself, because if you drag the folder, you won't be prompted to add the bridging header (see next point).
+ Note, if you're copying all of the files from the `src` folder into to your project (which is recommended), you may want to drag the individual files into your project, not the folder, itself, because if you drag the folder, you won't be prompted to add the bridging header (see fmdb_next point).
 
 2. If prompted to create a "bridging header", you should do so. If not prompted and if you don't already have a bridging header, add one.
 
@@ -315,7 +315,7 @@ To do this, you must:
     #import "FMDB.h"
     ```
 
-4. Use the variations of `executeQuery` and `executeUpdate` with the `sql` and `values` parameters with `try` pattern, as shown below. These renditions of `executeQuery` and `executeUpdate` both `throw` errors in true Swift 2 fashion.
+4. Use the variations of `executeQuery` and `fmdb_executeUpdate` with the `sql` and `values` parameters with `try` pattern, as shown below. These renditions of `executeQuery` and `fmdb_executeUpdate` both `throw` errors in true Swift 2 fashion.
 
 If you do the above, you can then write Swift code that uses `FMDBDatabase`. For example, in Swift 3:
 
@@ -335,12 +335,12 @@ guard database.open() else {
 }
 
 do {
-    try database.executeUpdate("create table test(x text, y text, z text)", values: nil)
-    try database.executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["a", "b", "c"])
-    try database.executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["e", "f", "g"])
+    try database.fmdb_executeUpdate("create table test(x text, y text, z text)", values: nil)
+    try database.fmdb_executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["a", "b", "c"])
+    try database.fmdb_executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["e", "f", "g"])
 
     let rs = try database.executeQuery("select x, y, z from test", values: nil)
-    while rs.next() {
+    while rs.fmdb_next() {
         if let x = rs.string(forColumn: "x"), let y = rs.string(forColumn: "y"), let z = rs.string(forColumn: "z") {
             print("x = \(x); y = \(y); z = \(z)")
         }
@@ -367,12 +367,12 @@ if !database.open() {
 }
 
 do {
-    try database.executeUpdate("create table test(x text, y text, z text)", values: nil)
-    try database.executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["a", "b", "c"])
-    try database.executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["e", "f", "g"])
+    try database.fmdb_executeUpdate("create table test(x text, y text, z text)", values: nil)
+    try database.fmdb_executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["a", "b", "c"])
+    try database.fmdb_executeUpdate("insert into test (x, y, z) values (?, ?, ?)", values: ["e", "f", "g"])
 
     let rs = try database.executeQuery("select x, y, z from test", values: nil)
-    while rs.next() {
+    while rs.fmdb_next() {
         let x = rs.stringForColumn("x")
         let y = rs.stringForColumn("y")
         let z = rs.stringForColumn("z")

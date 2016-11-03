@@ -19,7 +19,7 @@ extension FMDBDatabase {
         var result: T!
         
         if let rs = executeQuery(sql, withArgumentsInArray: values) {
-            if rs.next() {
+            if rs.fmdb_next() {
                 let obj: AnyObject! = rs.objectForColumnIndex(0)
                 if !(obj is NSNull) {
                     result = completionHandler(rs)
@@ -40,7 +40,7 @@ extension FMDBDatabase {
     /// - returns:                      This returns string value if value is found. Returns nil if column is NULL or upon error.
     
     func stringForQuery(sql: String, _ values: AnyObject...) -> String! {
-        return valueForQuery(sql, values: values) { $0.stringForColumnIndex(0) }
+        return valueForQuery(sql, values: values) { $0.fmdb_stringForColumnIndex(0) }
     }
     
     /// This is a rendition of intForQuery that handles Swift variadic parameters
@@ -52,7 +52,7 @@ extension FMDBDatabase {
     /// - returns:       This returns integer value if value is found. Returns nil if column is NULL or upon error.
     
     func intForQuery(sql: String, _ values: AnyObject...) -> Int32! {
-        return valueForQuery(sql, values: values) { $0.intForColumnIndex(0) }
+        return valueForQuery(sql, values: values) { $0.fmdb_intForColumnIndex(0) }
     }
     
     /// This is a rendition of longForQuery that handles Swift variadic parameters
@@ -88,7 +88,7 @@ extension FMDBDatabase {
     /// - returns:                      This returns Double value if value is found. Returns nil if column is NULL or upon error.
     
     func doubleForQuery(sql: String, _ values: AnyObject...) -> Double! {
-        return valueForQuery(sql, values: values) { $0.doubleForColumnIndex(0) }
+        return valueForQuery(sql, values: values) { $0.fmdb_doubleForColumnIndex(0) }
     }
     
     /// This is a rendition of dateForQuery that handles Swift variadic parameters

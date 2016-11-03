@@ -24,12 +24,12 @@
 
 + (void)populateDatabase:(FMDBDatabase *)db
 {
-    [db executeUpdate:@"create table test (a text, b text, c integer, d double, e double)"];
+    [db fmdb_executeUpdate:@"create table test (a text, b text, c integer, d double, e double)"];
     
-    [db beginTransaction];
+    [db fmdb_beginTransaction];
     int i = 0;
     while (i++ < 20) {
-        [db executeUpdate:@"insert into test (a, b, c, d, e) values (?, ?, ?, ?, ?)" ,
+        [db fmdb_executeUpdate:@"insert into test (a, b, c, d, e) values (?, ?, ?, ?, ?)" ,
          @"hi'",
          [NSString stringWithFormat:@"number %d", i],
          [NSNumber numberWithInt:i],
@@ -41,9 +41,9 @@
 
 - (void)testNextWithError_WithoutError
 {
-    [self.db executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
+    [self.db fmdb_executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
     FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
     XCTAssertNotNil(resultSet);
@@ -59,9 +59,9 @@
 
 - (void)testNextWithError_WithBusyError
 {
-    [self.db executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
+    [self.db fmdb_executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
     FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=1"];
     XCTAssertNotNil(resultSet);
@@ -69,7 +69,7 @@
     FMDBDatabase *newDB = [FMDBDatabase databaseWithPath:self.databasePath];
     [newDB open];
     
-    [newDB beginTransaction];
+    [newDB fmdb_beginTransaction];
     NSError *error;
     XCTAssertFalse([resultSet nextWithError:&error]);
     [newDB commit];
@@ -81,13 +81,13 @@
 
 - (void)testNextWithError_WithMisuseError
 {
-    [self.db executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
-    [self.db executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
+    [self.db fmdb_executeUpdate:@"CREATE TABLE testTable(key INTEGER PRIMARY KEY, value INTEGER)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (1, 2)"];
+    [self.db fmdb_executeUpdate:@"INSERT INTO testTable (key, value) VALUES (2, 4)"];
     
     FMDBResultSet *resultSet = [self.db executeQuery:@"SELECT * FROM testTable WHERE key=9"];
     XCTAssertNotNil(resultSet);
-    XCTAssertFalse([resultSet next]);
+    XCTAssertFalse([resultSet fmdb_next]);
     NSError *error;
     XCTAssertFalse([resultSet nextWithError:&error]);
 

@@ -27,7 +27,7 @@ va_list args;                                                        \
 va_start(args, query);                                               \
 FMDBResultSet *resultSet = [self executeQuery:query withArgumentsInArray:0x00 orDictionary:0x00 orVAList:args];   \
 va_end(args);                                                        \
-if (![resultSet next]) { return (type)0; }                           \
+if (![resultSet fmdb_next]) { return (type)0; }                           \
 type ret = [resultSet sel:0];                                        \
 [resultSet close];                                                   \
 [resultSet setParentDB:nil];                                         \
@@ -35,11 +35,11 @@ return ret;
 
 
 - (NSString*)stringForQuery:(NSString*)query, ... {
-    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(NSString *, stringForColumnIndex);
+    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(NSString *, fmdb_stringForColumnIndex);
 }
 
 - (int)intForQuery:(NSString*)query, ... {
-    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(int, intForColumnIndex);
+    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(int, fmdb_intForColumnIndex);
 }
 
 - (long)longForQuery:(NSString*)query, ... {
@@ -51,7 +51,7 @@ return ret;
 }
 
 - (double)doubleForQuery:(NSString*)query, ... {
-    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(double, doubleForColumnIndex);
+    RETURN_RESULT_FOR_QUERY_WITH_SELECTOR(double, fmdb_doubleForColumnIndex);
 }
 
 - (NSData*)dataForQuery:(NSString*)query, ... {
@@ -69,8 +69,8 @@ return ret;
     
     FMDBResultSet *rs = [self executeQuery:@"select [sql] from sqlite_master where [type] = 'table' and lower(name) = ?", tableName];
     
-    //if at least one next exists, table exists
-    BOOL returnBool = [rs next];
+    //if at least one fmdb_next exists, table exists
+    BOOL returnBool = [rs fmdb_next];
     
     //close and free object
     [rs close];
@@ -111,7 +111,7 @@ return ret;
     FMDBResultSet *rs = [self getTableSchema:tableName];
     
     //check if column is present in table schema
-    while ([rs next]) {
+    while ([rs fmdb_next]) {
         if ([[[rs stringForColumn:@"name"] lowercaseString] isEqualToString:columnName]) {
             returnBool = YES;
             break;
@@ -132,7 +132,7 @@ return ret;
     
     FMDBResultSet *rs = [self executeQuery:@"pragma application_id"];
     
-    if ([rs next]) {
+    if ([rs fmdb_next]) {
         r = (uint32_t)[rs longLongIntForColumnIndex:0];
     }
     
@@ -150,7 +150,7 @@ return ret;
 #if SQLITE_VERSION_NUMBER >= 3007017
     NSString *query = [NSString stringWithFormat:@"pragma application_id=%d", appID];
     FMDBResultSet *rs = [self executeQuery:query];
-    [rs next];
+    [rs fmdb_next];
     [rs close];
 #else
     NSString *errorMessage = NSLocalizedString(@"Application ID functions require SQLite 3.7.17", nil);
@@ -198,7 +198,7 @@ return ret;
     
     FMDBResultSet *rs = [self executeQuery:@"pragma user_version"];
     
-    if ([rs next]) {
+    if ([rs fmdb_next]) {
         r = (uint32_t)[rs longLongIntForColumnIndex:0];
     }
     
@@ -209,7 +209,7 @@ return ret;
 - (void)setUserVersion:(uint32_t)version {
     NSString *query = [NSString stringWithFormat:@"pragma user_version = %d", version];
     FMDBResultSet *rs = [self executeQuery:query];
-    [rs next];
+    [rs fmdb_next];
     [rs close];
 }
 
@@ -233,7 +233,7 @@ return ret;
         if (error) {
             *error = [NSError errorWithDomain:NSCocoaErrorDomain
                                          code:[self lastErrorCode]
-                                     userInfo:[NSDictionary dictionaryWithObject:[self lastErrorMessage]
+                                     userInfo:[NSDictionary dictionaryWithObject:[self fmdb_lastErrorMessage]
                                                                           forKey:NSLocalizedDescriptionKey]];
         }
     }

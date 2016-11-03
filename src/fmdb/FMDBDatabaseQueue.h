@@ -23,12 +23,12 @@
  Then use it like so:
 
     [queue inDatabase:^(FMDBDatabase *db) {
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:1]];
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:2]];
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:3]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:1]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:2]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:3]];
 
         FMDBResultSet *rs = [db executeQuery:@"select * from foo"];
-        while ([rs next]) {
+        while ([rs fmdb_next]) {
             //…
         }
     }];
@@ -36,16 +36,16 @@
  An easy way to wrap things up in a transaction can be done like this:
 
     [queue inTransaction:^(FMDBDatabase *db, BOOL *rollback) {
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:1]];
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:2]];
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:3]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:1]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:2]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:3]];
 
         if (whoopsSomethingWrongHappened) {
             *rollback = YES;
             return;
         }
         // etc…
-        [db executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:4]];
+        [db fmdb_executeUpdate:@"INSERT INTO myTable VALUES (?)", [NSNumber numberWithInt:4]];
     }];
 
  `FMDBDatabaseQueue` will run the blocks on a serialized queue (hence the name of the class).  So if you call `FMDBDatabaseQueue`'s methods from multiple threads at the same time, they will be executed in the order they are received.  This way queries and updates won't step on each other's toes, and every one is happy.
